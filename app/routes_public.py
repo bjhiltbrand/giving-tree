@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, selectinload
 from . import site_settings as ss
 from .config import settings
 from .db import get_db
-from .models import Claim, Claimant, Family, Item
+from .models import CATEGORIES, Claim, Claimant, Family, Item
 from .security import check_csrf, client_ip, limiter
 from .services import (
     ClaimError,
@@ -21,7 +21,12 @@ from .web import flash, redirect, render
 router = APIRouter()
 
 
-def _tree_items(db: Session) -> tuple[list[Family], list[dict]]:
+def _scatter(item_id: int) -> int:
+    """Stable pseudo-random order, so one family's items don't sit next to each other."""
+    return (item_id * 2654435761) % 2**32
+
+
+def _tree_items(db: Session, show_families: bool) -> tuple[list[Family], list[Item], list[dict]]:
     families = (
         db.query(Family)
         .options(selectinload(Family.items).selectinload(Item.claims))
@@ -29,38 +34,43 @@ def _tree_items(db: Session) -> tuple[list[Family], list[dict]]:
         .order_by(Family.sort_order, Family.id)
         .all()
     )
+    items = [item for fam in families for item in fam.items if item.is_active]
+    if not show_families:
+        items.sort(key=lambda i: _scatter(i.id))
     data = []
-    for fam in families:
-        for item in fam.items:
-            if not item.is_active:
-                continue
-            data.append({
-                "id": item.id,
-                "title": item.title,
-                "description": item.description,
-                "category": item.category,
-                "categoryLabel": item.category_label,
-                "recipient": item.recipient,
-                "size": item.size,
-                "quantity": item.quantity,
-                "remaining": item.remaining,
-                "state": item.state,
-                "link": item.link_url,
-                "familyId": fam.id,
-                "family": fam.alias,
-                "familyDescription": fam.description,
-            })
-    families = [f for f in families if any(i.is_active for i in f.items)]
-    return families, data
+    for item in items:
+        row = {
+            "id": item.id,
+            "title": item.title,
+            "description": item.description,
+            "category": item.category,
+            "categoryLabel": item.category_label,
+            "recipient": item.recipient,
+            "size": item.size,
+            "quantity": item.quantity,
+            "remaining": item.remaining,
+            "state": item.state,
+            "link": item.link_url,
+        }
+        if show_families:  # otherwise never send family info to the browser at all
+            row.update(familyId=item.family.id, family=item.family.alias,
+                       familyDescription=item.family.description)
+        data.append(row)
+    families = [f for f in families if any(i.is_active for i in f.items)] if show_families else []
+    return families, items, data
 
 
 @router.get("/")
 def tree(request: Request, db: Session = Depends(get_db)):
-    families, items = _tree_items(db)
+    show_families = ss.show_families(ss.get_all(db))
+    families, all_items, items = _tree_items(db, show_families)
     total = sum(i["quantity"] for i in items)
     claimed = sum(i["quantity"] - i["remaining"] for i in items)
     return render(request, db, "tree.html", {
         "families": families,
+        # Combined list: grouped by gift type, then alphabetical (no family clustering).
+        "flat_items": sorted(all_items, key=lambda i: (list(CATEGORIES).index(i.category)
+                                                       if i.category in CATEGORIES else 99, i.title.lower())),
         "items": items,
         "total": total,
         "claimed": claimed,

@@ -12,7 +12,7 @@
     {% else %}
       <h1>Thank you, {{ claim.claimant.name or 'friend' }}!</h1>
       <p>You claimed <strong>{{ claim.item.title }}</strong>{% if claim.quantity > 1 %} (×{{ claim.quantity }}){% endif %}
-         for {{ claim.item.family.alias }}. A confirmation is on its way to <strong>{{ claim.claimant.email }}</strong>.</p>
+         {% if show_families %}for {{ claim.item.family.alias }}{% else %}for a family in our community{% endif %}. A confirmation is on its way to <strong>{{ claim.claimant.email }}</strong>.</p>
     {% endif %}
 
     <div class="info-box">

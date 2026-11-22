@@ -177,7 +177,7 @@
 
   function filtered() {
     return ALL.filter((it) =>
-      (!fFamily.value || String(it.familyId) === fFamily.value) &&
+      (!fFamily || !fFamily.value || String(it.familyId) === fFamily.value) &&
       (!fCat.value || it.category === fCat.value) &&
       (!fAvail.checked || it.remaining > 0));
   }
@@ -196,11 +196,11 @@
         empty = el("text", { id: "tree-empty", x: CX, y: 380, "text-anchor": "middle", fill: "#fff",
           "font-size": 22, class: "tree-empty" }, svg);
       }
-      empty.textContent = ALL.length ? (fAvail.checked && !fFamily.value && !fCat.value
+      empty.textContent = ALL.length ? (fAvail.checked && !(fFamily && fFamily.value) && !fCat.value
         ? "Every ornament has been claimed! 🎉" : "No ornaments match those filters") : "Decorating soon…";
     } else if (empty) empty.remove();
   }
-  [fFamily, fCat, fAvail].forEach((f) => f.addEventListener("change", refresh));
+  [fFamily, fCat, fAvail].forEach((f) => f && f.addEventListener("change", refresh));
 
   // ----------------------------------------------------------------- tooltip
   function showTip(g) {
@@ -257,8 +257,9 @@
     const link = $("dlg-link");
     link.hidden = !item.link;
     if (item.link) link.querySelector("a").href = item.link;
-    $("dlg-family").textContent = `From the wish list of ${item.family}` +
-      (item.familyDescription ? ` — ${item.familyDescription}` : "");
+    $("dlg-family").hidden = !item.family;
+    $("dlg-family").textContent = item.family ? `From the wish list of ${item.family}` +
+      (item.familyDescription ? ` — ${item.familyDescription}` : "") : "";
 
     const available = item.remaining > 0;
     $("dlg-claimed").hidden = available;

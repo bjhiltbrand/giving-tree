@@ -30,12 +30,14 @@
 </section>
 
 <section class="wrap filters-bar" aria-label="Filter ornaments">
+  {% if show_families %}
   <label>Family
     <select id="f-family">
       <option value="">All families</option>
       {% for fam in families %}<option value="{{ fam.id }}">{{ fam.alias }}</option>{% endfor %}
     </select>
   </label>
+  {% endif %}
   <label>Type
     <select id="f-category">
       <option value="">Any type</option>
@@ -50,37 +52,48 @@
 
 <section class="wrap list-view" id="list">
   <h2>Every ornament</h2>
-  {% if not families %}
+  {% if not items %}
   <p class="empty">The tree is still being decorated. Check back soon!</p>
   {% endif %}
-  {% for fam in families %}
-  <div class="family-block" data-family="{{ fam.id }}">
-    <h3>{{ fam.alias }}</h3>
-    {% if fam.description %}<p class="muted">{{ fam.description }}</p>{% endif %}
-    <div class="cards">
-      {% for item in fam.items if item.is_active %}
-      <article class="card state-{{ item.state }}" data-id="{{ item.id }}" data-family="{{ fam.id }}"
-               data-category="{{ item.category }}" data-available="{{ 1 if item.remaining else 0 }}">
-        <div class="card-head">
-          <span class="dot cat-{{ item.category }}" aria-hidden="true"></span>
-          <span class="muted small">#{{ item.id }} · {{ item.category_label }}</span>
-        </div>
-        <h4>{{ item.title }}</h4>
-        <p class="small">
-          {% if item.recipient %}For: {{ item.recipient }}{% endif %}
-          {% if item.size %}{% if item.recipient %} · {% endif %}Size: {{ item.size }}{% endif %}
-        </p>
-        {% if item.remaining %}
-          {% if item.quantity > 1 %}<p class="small muted">{{ item.remaining }} of {{ item.quantity }} still needed</p>{% endif %}
-          {% if claims_open %}<a class="btn btn-small js-open" href="/ornament/{{ item.id }}" data-id="{{ item.id }}">Claim</a>{% endif %}
-        {% else %}
-          <p class="badge">{{ 'Received 🎁' if item.state == 'fulfilled' else 'Claimed ✓' }}</p>
-        {% endif %}
-      </article>
-      {% endfor %}
+
+  {% macro card(item) %}
+  <article class="card state-{{ item.state }}" data-id="{{ item.id }}"
+           data-category="{{ item.category }}" data-available="{{ 1 if item.remaining else 0 }}">
+    <div class="card-head">
+      <span class="dot cat-{{ item.category }}" aria-hidden="true"></span>
+      <span class="muted small">#{{ item.id }} · {{ item.category_label }}</span>
     </div>
-  </div>
-  {% endfor %}
+    <h4>{{ item.title }}</h4>
+    <p class="small">
+      {% if item.recipient %}For: {{ item.recipient }}{% endif %}
+      {% if item.size %}{% if item.recipient %} · {% endif %}Size: {{ item.size }}{% endif %}
+    </p>
+    {% if item.remaining %}
+      {% if item.quantity > 1 %}<p class="small muted">{{ item.remaining }} of {{ item.quantity }} still needed</p>{% endif %}
+      {% if site.claims_open in ('1', 'true', 'on') %}<a class="btn btn-small js-open" href="/ornament/{{ item.id }}" data-id="{{ item.id }}">Claim</a>{% endif %}
+    {% else %}
+      <p class="badge">{{ 'Received 🎁' if item.state == 'fulfilled' else 'Claimed ✓' }}</p>
+    {% endif %}
+  </article>
+  {% endmacro %}
+
+  {% if show_families %}
+    {% for fam in families %}
+    <div class="family-block">
+      <h3>{{ fam.alias }}</h3>
+      {% if fam.description %}<p class="muted">{{ fam.description }}</p>{% endif %}
+      <div class="cards">
+        {% for item in fam.items if item.is_active %}{{ card(item) }}{% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  {% elif items %}
+    <div class="family-block">
+      <div class="cards">
+        {% for item in flat_items %}{{ card(item) }}{% endfor %}
+      </div>
+    </div>
+  {% endif %}
 </section>
 
 <dialog id="claim-dialog" class="dialog" aria-labelledby="dlg-title">
@@ -101,5 +114,5 @@
 
 {% block scripts %}
 <script id="tree-data" type="application/json">{{ {"items": items, "claimsOpen": site.claims_open in ('1', 'true', 'on'), "maxQty": site.max_claim_qty|int}|tojson }}</script>
-<script src="/static/js/tree.js?v=1"></script>
+<script src="/static/js/tree.js?v=2"></script>
 {% endblock %}

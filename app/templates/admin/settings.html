@@ -13,6 +13,8 @@
       <label class="field"><span>Drop-off instructions</span><textarea name="dropoff_instructions" rows="4" placeholder="Where, when, wrapped or unwrapped…">{{ values.dropoff_instructions }}</textarea>
         <span class="help">Included on the thank-you page and in every confirmation/reminder email.</span></label>
       <label class="field"><span>Public contact email <em>(optional)</em></span><input type="email" name="contact_email" value="{{ values.contact_email }}"></label>
+      <label class="check"><input type="checkbox" name="show_families" value="1" {% if values.show_families == '1' %}checked{% endif %}>
+        <span>Show families publicly<br><span class="help">On: ornaments are grouped by family (alias and description shown). Off: one combined list. Family names and descriptions are never shown to visitors or in givers' emails; organizers still see everything here.</span></span></label>
       <label class="check"><input type="checkbox" name="claims_open" value="1" {% if values.claims_open == '1' %}checked{% endif %}> Claiming is open</label>
       <label class="field"><span>Message when claiming is closed</span><input name="closed_message" value="{{ values.closed_message }}"></label>
     </div>

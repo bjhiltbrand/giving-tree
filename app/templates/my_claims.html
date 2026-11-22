@@ -18,7 +18,7 @@
         <div>
           <span class="dot cat-{{ c.item.category }}" aria-hidden="true"></span>
           <strong>{{ c.item.title }}</strong>{% if c.quantity > 1 %} ×{{ c.quantity }}{% endif %}
-          <div class="small muted">Ornament #{{ c.item.id }} · {{ c.item.family.alias }}{% if c.item.recipient %} · For: {{ c.item.recipient }}{% endif %}{% if c.item.size %} · Size: {{ c.item.size }}{% endif %}</div>
+          <div class="small muted">Ornament #{{ c.item.id }}{% if show_families %} · {{ c.item.family.alias }}{% endif %}{% if c.item.recipient %} · For: {{ c.item.recipient }}{% endif %}{% if c.item.size %} · Size: {{ c.item.size }}{% endif %}</div>
           <span class="status-chip">{{ c.status_label }}</span>
         </div>
         <div class="my-actions">

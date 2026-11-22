@@ -431,7 +431,7 @@ async def settings_save(request: Request, db: Session = Depends(get_db), admin: 
     check_csrf(request, form.get("csrf"))
     updates = {}
     for key in ss.DEFAULTS:
-        if key in ("require_confirmation", "claims_open"):
+        if key in ("require_confirmation", "claims_open", "show_families"):
             updates[key] = "1" if form.get(key) else "0"
         elif key in form:
             updates[key] = str(form.get(key)).strip()

@@ -16,7 +16,9 @@
     </dl>
     {% if item.description %}<p class="pre">{{ item.description }}</p>{% endif %}
     {% if item.link_url %}<p><a href="{{ item.link_url }}" target="_blank" rel="noopener noreferrer">See an example ↗</a></p>{% endif %}
+    {% if show_families %}
     <p class="muted small">From the wish list of <strong>{{ item.family.alias }}</strong>{% if item.family.description %} — {{ item.family.description }}{% endif %}</p>
+    {% endif %}
 
     {% if error %}<div class="flash flash-error" role="alert">{{ error }}</div>{% endif %}
 

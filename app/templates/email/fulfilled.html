@@ -3,7 +3,7 @@
 {% block text %}
 Hi {{ claimant.name or 'there' }},
 
-Your gift has been received and will be on its way to {{ family.alias }}:
+Your gift has been received and will be on its way to {{ family.alias if show_families else "the family" }}:
 
 {{ L.item_text(item, claim) }}
 Thank you for making this season brighter. That's the last email you'll get about this ornament.
@@ -14,7 +14,7 @@ See your ornaments: {{ manage_url }}
 {% block html %}
 {% call L.wrap(site, "That's the last email you'll get about this ornament.") %}
 <p>Hi {{ claimant.name or 'there' }},</p>
-<p>Your gift has been <strong>received</strong> and will be on its way to {{ family.alias }}. 🎉</p>
+<p>Your gift has been <strong>received</strong> and will be on its way to {{ family.alias if show_families else "the family" }}. 🎉</p>
 {{ L.item_box(item, claim) }}
 <p>Thank you for making this season brighter for a family in our community.</p>
 {{ L.button(BASE_URL ~ "/", "See the tree") }}

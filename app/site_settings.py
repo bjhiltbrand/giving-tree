@@ -27,6 +27,9 @@ DEFAULTS: dict[str, str] = {
     "require_confirmation": "0",
     "confirm_window_hours": "24",
     "max_claim_qty": "5",
+    # "1" = group the public list by family (alias + description shown).
+    # "0" = one combined list; family names/descriptions never appear publicly or in giver emails.
+    "show_families": "1",
     "claims_open": "1",
     "closed_message": "Claiming is closed for this season. Thank you to everyone who gave!",
 }
@@ -60,6 +63,10 @@ def as_int(value: str, default: int = 0) -> int:
         return int(str(value).strip())
     except ValueError:
         return default
+
+
+def show_families(values: dict[str, str]) -> bool:
+    return as_bool(values.get("show_families", "1"))
 
 
 def deadline(values: dict[str, str]) -> date | None:

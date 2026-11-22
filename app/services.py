@@ -27,6 +27,7 @@ def site_context(db: Session) -> dict:
     return {
         "site": values,
         "deadline": ss.deadline(values),
+        "show_families": ss.show_families(values),
     }
 
 
@@ -204,6 +205,8 @@ def resend_confirmation(db: Session, claim: Claim) -> None:
 def notify_admin(db: Session, template: str, claim: Claim) -> None:
     values = ss.get_all(db)
     to = [a.strip() for a in (values.get("admin_notify_email") or "").split(",") if a.strip()]
-    ctx = dict(site_context(db), claim=claim, item=claim.item, family=claim.item.family, claimant=claim.claimant)
+    # Organizers always see which family an item belongs to.
+    ctx = dict(site_context(db), claim=claim, item=claim.item, family=claim.item.family, claimant=claim.claimant,
+               show_families=True)
     for addr in to:
         emailer.send(addr, template, ctx)
