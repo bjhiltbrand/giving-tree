@@ -1,26 +1,21 @@
-{% block subject %}{% if reason == 'Confirmation link expired' %}Your ornament hold expired{% else %}Update on your ornament "{{ item.title }}"{% endif %}{% endblock %}
+{% block subject %}{{ copy.subject }}{% endblock %}
 
 {% block text %}
-Hi {{ claimant.name or 'there' }},
+{{ copy.intro }}
 
-{% if reason == 'Confirmation link expired' %}We didn't get a confirmation in time, so this ornament went back on the tree:{% else %}This ornament has been released and is no longer assigned to you:{% endif %}
-
-{{ L.item_text(item, claim) }}{% if reason and reason != 'Confirmation link expired' %}
+{{ L.item_text(item, claim) }}{% if reason %}
 Note from the organizers: {{ reason }}
 {% endif %}
-You're welcome to pick another ornament: {{ BASE_URL }}/
+{{ copy.outro }}
+{{ BASE_URL }}/
 {% endblock %}
 
 {% block html %}
 {% call L.wrap(site) %}
-<p>Hi {{ claimant.name or 'there' }},</p>
-{% if reason == 'Confirmation link expired' %}
-<p>We didn't get a confirmation in time, so this ornament went back on the tree:</p>
-{% else %}
-<p>This ornament has been released and is no longer assigned to you:</p>
-{% endif %}
+{{ copy.intro_html }}
 {{ L.item_box(item, claim) }}
-{% if reason and reason != 'Confirmation link expired' %}<p><em>Note from the organizers:</em> {{ reason }}</p>{% endif %}
+{% if reason %}<p><em>Note from the organizers:</em> {{ reason }}</p>{% endif %}
+{{ copy.outro_html }}
 {{ L.button(BASE_URL ~ "/", "Pick another ornament") }}
 {% endcall %}
 {% endblock %}

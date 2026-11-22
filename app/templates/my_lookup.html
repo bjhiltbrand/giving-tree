@@ -4,13 +4,19 @@
 <section class="wrap narrow">
   <div class="panel">
     <h1>My ornaments</h1>
+    {% if lookup_by_email %}
+    <p>Enter the email you used to claim to see your ornaments, release one if plans change, or let us know
+       you've dropped it off.</p>
+    {% else %}
     <p>There are no passwords here. Enter the email you used to claim and we'll send you a private link to see
        your ornaments, release one, or let us know you've dropped it off.</p>
+    {% endif %}
+    {% if error %}<div class="flash flash-error" role="alert">{{ error }}</div>{% endif %}
     <form method="post" action="/my" class="inline-form">
       <input type="hidden" name="csrf" value="{{ csrf }}">
       <label class="field grow"><span>Email</span>
-        <input type="email" name="email" required autocomplete="email"></label>
-      <button class="btn btn-primary" type="submit">Email me my link</button>
+        <input type="email" name="email" required autocomplete="email" value="{{ email }}" {% if error %}autofocus{% endif %}></label>
+      <button class="btn btn-primary" type="submit">{{ 'Show my ornaments' if lookup_by_email else 'Email me my link' }}</button>
     </form>
   </div>
 </section>

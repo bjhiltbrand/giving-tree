@@ -1,23 +1,20 @@
-{% block subject %}Please confirm your ornament: "{{ item.title }}"{% endblock %}
+{% block subject %}{{ copy.subject }}{% endblock %}
 
 {% block text %}
-Hi {{ claimant.name or 'there' }},
-
-We're holding this ornament for you:
+{{ copy.intro }}
 
 {{ L.item_text(item, claim) }}
-To lock it in, please confirm within {{ window_hours }} hours:
+Confirm here:
 {{ confirm_url }}
 
-If you didn't do this, just ignore this email and the ornament will go back on the tree.
+{{ copy.outro }}
 {% endblock %}
 
 {% block html %}
 {% call L.wrap(site, "If you didn't claim this ornament, ignore this email and it will be released automatically.") %}
-<p>Hi {{ claimant.name or 'there' }},</p>
-<p>We're holding this ornament for you. Please confirm within <strong>{{ window_hours }} hours</strong> to lock it in:</p>
+{{ copy.intro_html }}
 {{ L.item_box(item, claim) }}
 {{ L.button(confirm_url, "Yes, I'll give this gift") }}
-<p style="font-size:13px;color:#5f6b64;">If you don't confirm, the ornament goes back on the tree for someone else.</p>
+{{ copy.outro_html }}
 {% endcall %}
 {% endblock %}

@@ -261,3 +261,15 @@ code { background: #f4efe4; padding: .1rem .35rem; border-radius: 5px; font-size
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------------------------------------------------------------- admin: email wording */
+.email-edit summary { font-size: 1.1rem; display: flex; align-items: center; gap: .6rem; list-style-position: outside; }
+.email-edit[open] summary { margin-bottom: .6rem; }
+.placeholders { background: #f6f1e6; border-radius: 10px; padding: .7rem .9rem; margin: 0 0 1rem; }
+.placeholders ul { margin: .3rem 0 0; padding-left: 1.1rem; columns: 2 260px; column-gap: 1.5rem; }
+.placeholders li { break-inside: avoid; margin-bottom: .2rem; color: var(--muted); }
+.placeholders code { color: var(--ink); }
+.choice { display: flex; gap: .6rem; align-items: flex-start; padding: .75rem .9rem; border: 1px solid var(--line); border-radius: 10px; margin-bottom: .6rem; cursor: pointer; font-size: .92rem; }
+.choice:has(input:checked) { border-color: var(--green); background: #f1f8f3; }
+.choice input { margin-top: .25rem; accent-color: var(--green); }
+.choice strong { display: block; }

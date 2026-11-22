@@ -180,6 +180,17 @@ class ReminderLog(Base):
     claim: Mapped[Claim] = relationship(back_populates="reminders")
 
 
+class EmailTemplate(Base):
+    """Admin-customized wording for a giver-facing email (see email_copy.DEFAULTS)."""
+
+    __tablename__ = "email_templates"
+    key: Mapped[str] = mapped_column(String(40), primary_key=True)
+    subject: Mapped[str] = mapped_column(String(300), default="")
+    intro: Mapped[str] = mapped_column(Text, default="")
+    outro: Mapped[str] = mapped_column(Text, default="")
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+
+
 class EmailLog(Base):
     __tablename__ = "email_log"
     id: Mapped[int] = mapped_column(primary_key=True)

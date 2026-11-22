@@ -1,0 +1,51 @@
+{% extends "admin/base.html" %}
+{% block admin %}
+<div class="admin-head">
+  <div>
+    <h1>Email wording</h1>
+    <p class="muted" style="margin:.3rem 0 0">Customize what givers read. Each email has an opening and a closing message;
+      the gift details, drop-off info and buttons are added between them automatically.</p>
+  </div>
+  <a class="btn" href="/admin/emails">Sent email log →</a>
+</div>
+
+<p class="small muted">Tips: leave a blank line to start a new paragraph. Placeholders in curly braces, like
+  <code>{name}</code>, are filled in for each person. Use <strong>Preview</strong> to see your changes with sample data
+  before saving.</p>
+
+{% for e in emails %}
+<details class="panel section email-edit" id="{{ e.key }}" {% if open_key == e.key %}open{% endif %}>
+  <summary>
+    {{ e.meta.label }}
+    {% if e.custom %}<span class="chip chip-partial">Customized</span>{% else %}<span class="chip chip-hidden">Original</span>{% endif %}
+  </summary>
+  <p class="small muted">{{ e.meta.when }}</p>
+  <form method="post" action="/admin/email-text/{{ e.key }}">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <label class="field"><span>Subject</span>
+      <input name="subject" maxlength="300" value="{{ e.wording.subject }}" required></label>
+    <label class="field"><span>Opening message <em>(above the gift details)</em></span>
+      <textarea name="intro" rows="5">{{ e.wording.intro }}</textarea></label>
+    <label class="field"><span>Closing message <em>(below the buttons)</em></span>
+      <textarea name="outro" rows="4">{{ e.wording.outro }}</textarea></label>
+    <div class="placeholders small">
+      <strong>Placeholders you can use:</strong>
+      <ul>
+        {% for name, desc in e.meta.placeholders.items() %}<li><code>{{ '{' ~ name ~ '}' }}</code> {{ desc }}</li>{% endfor %}
+      </ul>
+    </div>
+    <div class="btn-row" style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn btn-green" type="submit">Save</button>
+      <button class="btn" type="submit" formaction="/admin/email-text/{{ e.key }}/preview" formtarget="_blank">Preview ↗</button>
+    </div>
+  </form>
+  {% if e.custom %}
+  <form method="post" action="/admin/email-text/{{ e.key }}/reset" style="margin-top:.6rem"
+        onsubmit="return confirm('Restore the original wording for this email? Your changes will be lost.')">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <button class="btn btn-small btn-ghost" type="submit">Restore original wording</button>
+  </form>
+  {% endif %}
+</details>
+{% endfor %}
+{% endblock %}

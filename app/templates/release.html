@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Release an ornament · {{ site.site_title }}{% endblock %}
+{% block content %}
+<section class="wrap narrow">
+  <div class="panel">
+    <div class="dlg-ornament cat-{{ claim.item.category }}" aria-hidden="true"></div>
+    <p class="muted small">Ornament #{{ claim.item.id }} · {{ claim.item.category_label }}</p>
+    <h1>{{ claim.item.title }}{% if claim.quantity > 1 %} ×{{ claim.quantity }}{% endif %}</h1>
+    <dl class="dlg-details">
+      {% if claim.item.recipient %}<dt>For</dt><dd>{{ claim.item.recipient }}</dd>{% endif %}
+      {% if claim.item.size %}<dt>Size</dt><dd>{{ claim.item.size }}</dd>{% endif %}
+      <dt>Claimed by</dt><dd>{{ claim.claimant.name or claim.claimant.email }}</dd>
+    </dl>
+
+    {% if claim.status in ('pending', 'claimed') %}
+      <h2 style="font-size:1.3rem">Can't give this gift after all?</h2>
+      <p>No worries — plans change. Releasing it puts the ornament back on the tree so someone else can pick it up.</p>
+      <form method="post" action="/release/{{ claim.confirm_token }}" class="actions" style="justify-content:flex-start">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <button class="btn btn-primary" type="submit">Yes, release this ornament</button>
+        <a class="btn" href="/my/{{ claim.claimant.token }}">No, I'll still give it</a>
+      </form>
+    {% elif claim.status == 'released' %}
+      <div class="flash flash-info">This ornament has already been released. Thank you for letting us know!</div>
+      <p><a class="btn" href="/">Back to the tree</a></p>
+    {% elif claim.status == 'delivered' %}
+      <div class="flash flash-info">You've marked this gift as dropped off, so it can't be released here.
+        {% if site.contact_email %}If something's wrong, write to <a href="mailto:{{ site.contact_email }}">{{ site.contact_email }}</a>.{% endif %}</div>
+      <p><a class="btn" href="/my/{{ claim.claimant.token }}">View my ornaments</a></p>
+    {% else %}
+      <div class="flash flash-success">This gift has already been received. Thank you! 🎁</div>
+      <p><a class="btn" href="/my/{{ claim.claimant.token }}">View my ornaments</a></p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

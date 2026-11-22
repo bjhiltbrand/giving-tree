@@ -40,18 +40,35 @@ Each visitor is identified **only by email**. There are no accounts.
 | Step | What happens |
 | --- | --- |
 | Claim | Visitor enters name + email (plus an optional note) next to a short notice explaining what the email is used for. The ornament is reserved immediately. |
-| Confirmation email | Contains the gift details, deadline, drop-off instructions and a **private link** (`/my/<token>`) to view their ornaments, release one ("I can't do this one"), report "I dropped it off", or turn reminders off. |
-| Remember me | The browser remembers their name and email, so the next claim is one click. Their private page is also linked from "My ornaments" in the header. |
-| Lost the link? | "My ornaments" → enter email → the link is emailed to them. It is never shown on screen, so typing someone else's email reveals nothing. |
-| Reminders | Sent N days before the deadline (default `7,2`), bundled into one email per person. Skipped if they claimed inside that window. An optional "check-in N days after claiming" is available too. |
+| Confirmation email | Contains the gift details, deadline, drop-off instructions, a **View my ornaments** button and a **Release this ornament** button. |
+| Remember me | The browser remembers their name and email, so the next claim is one click. Their ornaments are also linked from "My ornaments" in the header. |
+| My ornaments | See your ornaments, release one ("I can't do this one"), report "I dropped it off", or turn reminders off. How people get here is a setting (below). |
+| Reminders | Sent N days before the deadline (default `7,2`), bundled into one email per person, with a release link under each ornament. Skipped if they claimed inside that window. An optional "check-in N days after claiming" is available too. |
 | Drop-off | The giver clicks "I dropped it off" (organizers get notified), then an organizer clicks **Received ✓**, which sends the thank-you. Organizers can also mark gifts received directly. |
 
-**Optional stricter mode:** under *Settings → Require email confirmation*, claims are only *held*
-until the visitor clicks a link in their email. Unconfirmed holds are released after N hours. This
-stops typos and fake addresses but adds a step, so it's off by default. Turn it on if you see junk claims.
+Release buttons in emails open a short "Release this ornament?" page instead of releasing straight
+away, because some mail providers and link scanners open every link in a message automatically.
 
-Other safeguards: an invisible honeypot field for bots, per-IP rate limits on claiming, emailing
-links and admin login, CSRF tokens on every form, and scrypt-hashed admin passwords.
+### Convenience vs. security (Admin → Settings)
+
+Two independent choices, both changeable at any time during the season:
+
+| Setting | Fewest steps (default) | More secure |
+| --- | --- | --- |
+| **When someone claims** | *Claim instantly:* the ornament is theirs as soon as they submit. A typo'd or fake email still holds it until an organizer releases it. | *Confirm by email first:* the ornament is only held until they click the link in their email, and goes back on the tree after N hours if they don't. |
+| **"My ornaments"** | *Email address only:* type your email, see your ornaments. Anyone who knows a giver's email could see or change their ornaments. | *Emailed private link:* we email a link to `/my/<token>`. Typing someone else's email reveals nothing. |
+
+Other safeguards: an invisible honeypot field for bots, per-IP rate limits on claiming, email
+lookups and admin login, CSRF tokens on every form, and scrypt-hashed admin passwords.
+
+### Email wording (Admin → Email text)
+
+Every email a giver receives (claim confirmation, please-confirm, reminder, thank-you, released,
+hold expired, "My ornaments" link) has an editable subject, opening message and closing message.
+The gift details, drop-off info and buttons are added between them automatically, so an edit can't
+break an email. Placeholders like `{name}`, `{item}` and `{deadline_phrase}` are filled in per person
+(each email lists the ones it supports). **Preview** shows unsaved changes with sample data, and
+**Restore original wording** undoes your edits.
 
 ## Email setup
 

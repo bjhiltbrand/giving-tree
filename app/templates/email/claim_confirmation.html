@@ -1,27 +1,27 @@
-{% block subject %}You claimed "{{ item.title }}" — thank you!{% endblock %}
+{% block subject %}{{ copy.subject }}{% endblock %}
 
 {% block text %}
-Hi {{ claimant.name or 'there' }},
-
-Thank you for claiming an ornament from {{ site.site_title }}!
+{{ copy.intro }}
 
 {{ L.item_text(item, claim) }}
 {% if deadline %}Please drop it off by {{ deadline|longdate }}.
 {% endif %}{% if site.dropoff_instructions %}{{ site.dropoff_instructions }}
 {% endif %}
-Your private link (see your ornaments, release one if plans change, or tell us you've dropped it off):
+See your ornaments or tell us you've dropped it off:
 {{ manage_url }}
 
-We'll only email you about this ornament: reminders before the deadline and a thank-you once it's received.
+Can't give this gift after all? Release it here:
+{{ BASE_URL }}/release/{{ claim.confirm_token }}
+
+{{ copy.outro }}
 {% endblock %}
 
 {% block html %}
 {% call L.wrap(site, "You're getting this because you claimed an ornament with this address. We'll only email you about your ornaments.") %}
-<p>Hi {{ claimant.name or 'there' }},</p>
-<p>Thank you for claiming an ornament! Here's what you picked:</p>
+{{ copy.intro_html }}
 {{ L.item_box(item, claim) }}
 {{ L.dropoff(site, deadline) }}
-{{ L.button(manage_url, "View my ornaments") }}
-<p style="font-size:13px;color:#5f6b64;">Use that private link any time to release an ornament if plans change, or to let us know you've dropped it off. No password needed — just keep this email.</p>
+{{ L.two_buttons(manage_url, "View my ornaments", BASE_URL ~ "/release/" ~ claim.confirm_token, "Release this ornament") }}
+{{ copy.outro_html }}
 {% endcall %}
 {% endblock %}

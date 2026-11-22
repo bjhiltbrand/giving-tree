@@ -1,0 +1,18 @@
+{% block subject %}{{ copy.subject }}{% endblock %}
+
+{% block text %}
+{{ copy.intro }}
+
+{{ L.item_text(item, claim) }}
+{{ copy.outro }}
+{{ BASE_URL }}/
+{% endblock %}
+
+{% block html %}
+{% call L.wrap(site) %}
+{{ copy.intro_html }}
+{{ L.item_box(item, claim) }}
+{{ copy.outro_html }}
+{{ L.button(BASE_URL ~ "/", "Pick another ornament") }}
+{% endcall %}
+{% endblock %}

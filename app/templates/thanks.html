@@ -25,7 +25,9 @@
       <a class="btn btn-primary" href="/">Claim another ornament</a>
       {% if my_token %}<a class="btn" href="/my/{{ my_token }}">View my ornaments</a>{% endif %}
     </p>
-    <p class="muted small">Can't see the email? Check your spam folder. Your email has a private link where you can see your ornaments, release one if plans change, or tell us you've dropped it off.</p>
+    <p class="muted small">Can't see the email? Check your spam folder.
+      {% if lookup_by_email %}You can also come back to “My ornaments” any time and enter your email{% else %}Your email has a private link{% endif %}
+      to see your ornaments, release one if plans change, or tell us you've dropped it off.</p>
   </div>
 </section>
 {% endblock %}

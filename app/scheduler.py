@@ -23,7 +23,7 @@ from . import site_settings as ss
 from .config import settings
 from .db import SessionLocal
 from .models import Claim, ReminderLog, utcnow
-from .services import manage_url, release_claim, site_context
+from .services import EXPIRED_REASON, manage_url, release_claim, site_context
 from .templating import LOCAL_TZ, to_local
 
 log = logging.getLogger("giving_tree.scheduler")
@@ -38,7 +38,7 @@ def expire_pending(db) -> int:
     cutoff = utcnow() - timedelta(hours=hours)
     expired = db.query(Claim).filter(Claim.status == "pending", Claim.created_at < cutoff).all()
     for claim in expired:
-        release_claim(db, claim, "Confirmation link expired", by_admin=True)
+        release_claim(db, claim, EXPIRED_REASON, by_admin=True)
     return len(expired)
 
 

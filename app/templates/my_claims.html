@@ -4,7 +4,8 @@
 <section class="wrap narrow">
   <div class="panel">
     <h1>Hi {{ claimant.name or 'there' }} 👋</h1>
-    <p class="muted">Ornaments claimed by <strong>{{ claimant.email }}</strong>. Bookmark this page — it's your private link.</p>
+    <p class="muted">Ornaments claimed by <strong>{{ claimant.email }}</strong>.
+      {% if lookup_by_email %}Come back any time: just enter your email under “My ornaments”.{% else %}Bookmark this page — it's your private link.{% endif %}</p>
     {% if deadline %}<p class="deadline-pill light">🎁 Drop-off deadline: <strong>{{ deadline|longdate }}</strong></p>{% endif %}
     {% if site.dropoff_instructions %}<p class="pre small">{{ site.dropoff_instructions }}</p>{% endif %}
 

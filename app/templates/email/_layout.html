@@ -18,6 +18,12 @@
 
 {% macro button(url, label) %}<p style="margin:22px 0;"><a href="{{ url }}" style="display:inline-block;background:#b3261e;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold;">{{ label }}</a></p>{% endmacro %}
 
+{# A main button plus a quieter outlined one, e.g. "View my ornaments" + "Release this ornament". #}
+{% macro two_buttons(url, label, url2, label2) %}<p style="margin:22px 0;line-height:3;"><a href="{{ url }}" style="display:inline-block;background:#b3261e;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold;margin-right:8px;">{{ label }}</a> <a href="{{ url2 }}" style="display:inline-block;background:#ffffff;color:#5f6b64;text-decoration:none;padding:11px 20px;border-radius:10px;border:1px solid #d5ccb9;font-weight:bold;">{{ label2 }}</a></p>{% endmacro %}
+
+{% macro release_link(claim) %}<div style="margin:-6px 0 14px;font-size:13px;"><a href="{{ BASE_URL }}/release/{{ claim.confirm_token }}" style="color:#5f6b64;">Can't give this one? Release it</a></div>{% endmacro %}
+
+
 {% macro item_box(item, claim) %}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f1e6;border-radius:10px;margin:14px 0;"><tr><td style="padding:14px 16px;">
 <div style="font-size:12px;color:#5f6b64;">Ornament #{{ item.id }}{% if show_families %} · {{ item.family.alias }}{% endif %}</div>
 <div style="font-size:17px;font-weight:bold;margin:2px 0;">{{ item.title }}{% if claim and claim.quantity > 1 %} ×{{ claim.quantity }}{% endif %}</div>

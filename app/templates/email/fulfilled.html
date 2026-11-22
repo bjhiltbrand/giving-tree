@@ -1,22 +1,19 @@
-{% block subject %}We received your gift — thank you! 🎁{% endblock %}
+{% block subject %}{{ copy.subject }}{% endblock %}
 
 {% block text %}
-Hi {{ claimant.name or 'there' }},
-
-Your gift has been received and will be on its way to {{ family.alias if show_families else "the family" }}:
+{{ copy.intro }}
 
 {{ L.item_text(item, claim) }}
-Thank you for making this season brighter. That's the last email you'll get about this ornament.
+{{ copy.outro }}
 
-See your ornaments: {{ manage_url }}
+See the tree: {{ BASE_URL }}/
 {% endblock %}
 
 {% block html %}
 {% call L.wrap(site, "That's the last email you'll get about this ornament.") %}
-<p>Hi {{ claimant.name or 'there' }},</p>
-<p>Your gift has been <strong>received</strong> and will be on its way to {{ family.alias if show_families else "the family" }}. 🎉</p>
+{{ copy.intro_html }}
 {{ L.item_box(item, claim) }}
-<p>Thank you for making this season brighter for a family in our community.</p>
+{{ copy.outro_html }}
 {{ L.button(BASE_URL ~ "/", "See the tree") }}
 {% endcall %}
 {% endblock %}

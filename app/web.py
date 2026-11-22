@@ -22,6 +22,7 @@ def render(request: Request, db: Session, name: str, context: dict | None = None
         "site": values,
         "deadline": ss.deadline(values),
         "show_families": ss.show_families(values),
+        "lookup_by_email": ss.lookup_by_email(values),
         "csrf": csrf_token(request),
         "flashes": request.session.pop("flash", []),
         "my_token": request.session.get("claimant_token"),

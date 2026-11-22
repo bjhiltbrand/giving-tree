@@ -22,9 +22,6 @@
       <h3>Claims &amp; emails</h3>
       <label class="field"><span>Max quantity per claim</span><input type="number" min="1" name="max_claim_qty" value="{{ values.max_claim_qty }}">
         <span class="help">For items with quantity &gt; 1 (e.g. gift cards).</span></label>
-      <label class="check"><input type="checkbox" name="require_confirmation" value="1" {% if values.require_confirmation == '1' %}checked{% endif %}>
-        <span>Require email confirmation<br><span class="help">Claims are held until the visitor clicks a link in their email. Stops typos and fake addresses, but adds a step.</span></span></label>
-      <label class="field"><span>Release unconfirmed claims after (hours)</span><input type="number" min="1" name="confirm_window_hours" value="{{ values.confirm_window_hours }}"></label>
       <label class="field"><span>Reminder schedule (days before deadline)</span><input name="reminder_days" value="{{ values.reminder_days }}" placeholder="7,2">
         <span class="help">Comma separated. <code>7,2</code> sends a reminder a week before and two days before. Leave blank for none. People who claim inside a window won't get that reminder.</span></label>
       <label class="field"><span>Check-in email N days after claiming (0 = off)</span><input type="number" min="0" name="followup_days" value="{{ values.followup_days }}">
@@ -33,6 +30,40 @@
         <span class="help">Gets an email when ornaments are claimed, dropped off or released. Comma separated.</span></label>
     </div>
   </div>
+
+  <div class="panel section" style="margin-top:1.2rem">
+    <h3>Convenience vs. security</h3>
+    <p class="small muted">Choose how much checking happens when people claim and come back. Fewer steps means more
+      people finish claiming; more checks protect against typos, fake addresses and snooping. You can change these at
+      any time during the season.</p>
+    <div class="grid-2">
+      <fieldset style="border:0;padding:0;margin:0">
+        <legend class="field" style="margin-bottom:.5rem"><strong>When someone claims an ornament</strong></legend>
+        <label class="choice"><input type="radio" name="require_confirmation" value="0" {% if values.require_confirmation != '1' %}checked{% endif %}>
+          <span><strong>Claim instantly</strong> <span class="help">Fewest steps.</span><br>
+          <span class="help">The ornament is theirs as soon as they submit the form, and the confirmation email follows.
+            A mistyped or fake email still holds the ornament until an organizer releases it.</span></span></label>
+        <label class="choice"><input type="radio" name="require_confirmation" value="1" {% if values.require_confirmation == '1' %}checked{% endif %}>
+          <span><strong>Confirm by email first</strong> <span class="help">More secure.</span><br>
+          <span class="help">The ornament is only held until they click the link in their email. If they don't, it goes
+            back on the tree automatically.</span></span></label>
+        <label class="field"><span>Release unconfirmed holds after (hours)</span>
+          <input type="number" min="1" name="confirm_window_hours" value="{{ values.confirm_window_hours }}"></label>
+      </fieldset>
+      <fieldset style="border:0;padding:0;margin:0">
+        <legend class="field" style="margin-bottom:.5rem"><strong>When someone opens “My ornaments”</strong></legend>
+        <label class="choice"><input type="radio" name="lookup_mode" value="email" {% if values.lookup_mode != 'link' %}checked{% endif %}>
+          <span><strong>Email address only</strong> <span class="help">Fewest steps.</span><br>
+          <span class="help">They type the email they claimed with and see their ornaments right away. Anyone who knows
+            a giver's email could see, release or mark their ornaments as dropped off.</span></span></label>
+        <label class="choice"><input type="radio" name="lookup_mode" value="link" {% if values.lookup_mode == 'link' %}checked{% endif %}>
+          <span><strong>Emailed private link</strong> <span class="help">More private.</span><br>
+          <span class="help">We email them a private link to open. Only someone with access to that inbox can see their
+            ornaments.</span></span></label>
+      </fieldset>
+    </div>
+  </div>
+
   <p><button class="btn btn-green btn-lg" style="width:auto" type="submit">Save settings</button></p>
 </form>
 

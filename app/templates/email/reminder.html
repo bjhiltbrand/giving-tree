@@ -1,27 +1,27 @@
-{% block subject %}{% if days_left is not none and days_left <= 0 %}Today's the day!{% elif days_left is not none %}Friendly reminder: {{ days_left }} day{{ '' if days_left == 1 else 's' }} until gift drop-off{% else %}A friendly reminder about your ornament{{ '' if claims|length == 1 else 's' }}{% endif %} — {{ site.site_title }}{% endblock %}
+{% block subject %}{{ copy.subject }}{% endblock %}
 
 {% block text %}
-Hi {{ claimant.name or 'there' }},
+{{ copy.intro }}
 
-Just a friendly reminder about the ornament{{ '' if claims|length == 1 else 's' }} you claimed:
+{% for c in claims %}{{ L.item_text(c.item, c) }}  Can't give this one? Release it: {{ BASE_URL }}/release/{{ c.confirm_token }}
 
-{% for c in claims %}{{ L.item_text(c.item, c) }}
 {% endfor %}{% if deadline %}Drop-off deadline: {{ deadline|longdate }}
 {% endif %}{% if site.dropoff_instructions %}{{ site.dropoff_instructions }}
 {% endif %}
-Already dropped it off, or plans changed? Let us know here:
+Dropped it off? Let us know here:
 {{ manage_url }}
+
+{{ copy.outro }}
 
 Don't want reminders? You can turn them off on that page.
 {% endblock %}
 
 {% block html %}
-{% call L.wrap(site, "Don't want reminders? Turn them off from your private link.") %}
-<p>Hi {{ claimant.name or 'there' }},</p>
-<p>Just a friendly reminder about the ornament{{ '' if claims|length == 1 else 's' }} you claimed{% if days_left is not none and days_left > 0 %} — drop-off is in <strong>{{ days_left }} day{{ '' if days_left == 1 else 's' }}</strong>{% elif days_left == 0 %} — drop-off is <strong>today</strong>{% endif %}.</p>
-{% for c in claims %}{{ L.item_box(c.item, c) }}{% endfor %}
+{% call L.wrap(site, "Don't want reminders? Turn them off from the “My ornaments” page.") %}
+{{ copy.intro_html }}
+{% for c in claims %}{{ L.item_box(c.item, c) }}{{ L.release_link(c) }}{% endfor %}
 {{ L.dropoff(site, deadline) }}
 {{ L.button(manage_url, "I dropped it off / manage my ornaments") }}
-<p style="font-size:13px;color:#5f6b64;">If plans changed and you can't give this gift, no worries — release it from that page so someone else can pick it up.</p>
+{{ copy.outro_html }}
 {% endcall %}
 {% endblock %}

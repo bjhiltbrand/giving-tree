@@ -3,6 +3,7 @@
 written to the application log (and the admin "Emails" page) instead of sent."""
 from __future__ import annotations
 
+import html as html_lib
 import logging
 import smtplib
 import ssl
@@ -10,6 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 from email.message import EmailMessage
 from email.utils import make_msgid
 
+from . import email_copy
 from .config import settings
 from .db import SessionLocal
 from .models import EmailLog
@@ -19,13 +21,18 @@ log = logging.getLogger("giving_tree.email")
 _pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="mailer")
 
 
-def render(template_name: str, context: dict) -> tuple[str, str, str]:
+def render(template_name: str, context: dict, copy_override: dict | None = None) -> tuple[str, str, str]:
+    """``copy_override`` (subject/intro/outro) is used by the admin preview to show unsaved edits."""
     tmpl = env.get_template(f"email/{template_name}.html")
+    context = dict(context, BASE_URL=settings.BASE_URL)
+    context["copy"] = email_copy.build(template_name, context, copy_override)
     # Blocks rendered on their own don't see top-level {% import %}s, so pass the layout macros in.
-    layout = env.get_template("email/_layout.html").make_module(dict(context, BASE_URL=settings.BASE_URL))
-    ctx = tmpl.new_context(dict(context, BASE_URL=settings.BASE_URL, L=layout))
-    subject = "".join(tmpl.blocks["subject"](ctx)).strip()
-    text = "".join(tmpl.blocks["text"](ctx)).strip() + "\n"
+    layout = env.get_template("email/_layout.html").make_module(context)
+    ctx = tmpl.new_context(dict(context, L=layout))
+    # Subject and plain-text body come from an autoescaping template; undo the HTML escaping there
+    # so "Men's shoes" doesn't arrive as "Men&#39;s shoes".
+    subject = html_lib.unescape("".join(tmpl.blocks["subject"](ctx)).strip())
+    text = html_lib.unescape("".join(tmpl.blocks["text"](ctx)).strip()) + "\n"
     html = "".join(tmpl.blocks["html"](ctx)).strip()
     return subject, text, html
 

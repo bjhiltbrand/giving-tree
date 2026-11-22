@@ -13,6 +13,7 @@ from .services import (
     create_claim,
     confirm_claim,
     mark_delivered,
+    normalize_email,
     release_claim,
     send_manage_link,
 )
@@ -126,9 +127,11 @@ def claim(
         request.session["visitor"] = {"name": name.strip(), "email": claimant.email}
     else:
         request.session.pop("visitor", None)
-    # Only link this browser to the claimant's private page if they're brand new or
-    # already linked; otherwise anyone could type someone else's email to see their claims.
-    if is_new or request.session.get("claimant_token") == claimant.token:
+    # In "emailed link" mode, only link this browser to the claimant's private page if they're brand
+    # new or already linked; otherwise anyone could type someone else's email to see their claims.
+    # In "email only" mode an email address is all it takes to look them up anyway.
+    if (is_new or request.session.get("claimant_token") == claimant.token
+            or ss.lookup_by_email(ss.get_all(db))):
         request.session["claimant_token"] = claimant.token
     request.session["last_claim"] = claim_obj.id
     return redirect("/thanks")
@@ -156,6 +159,37 @@ def confirm(token: str, request: Request, db: Session = Depends(get_db)):
     return redirect(f"/my/{claim_obj.claimant.token}")
 
 
+# ------------------------------------------------------------------ release from an email link
+# The email button opens a confirmation page rather than releasing straight away: mail providers
+# and link scanners open links automatically, which must never give an ornament away.
+
+
+def _claim_by_token(db: Session, token: str) -> Claim:
+    claim_obj = db.query(Claim).filter(Claim.confirm_token == token).one_or_none()
+    if not claim_obj:
+        raise HTTPException(404, "That link isn't valid.")
+    return claim_obj
+
+
+@router.get("/release/{token}")
+def release_page(token: str, request: Request, db: Session = Depends(get_db)):
+    claim_obj = _claim_by_token(db, token)
+    return render(request, db, "release.html", {"claim": claim_obj})
+
+
+@router.post("/release/{token}")
+def release_confirm(token: str, request: Request, db: Session = Depends(get_db), csrf: str = Form("")):
+    check_csrf(request, csrf)
+    claim_obj = _claim_by_token(db, token)
+    if claim_obj.status in ("pending", "claimed"):
+        release_claim(db, claim_obj, "Released by the claimant", notify=False)
+        flash(request, f"“{claim_obj.item.title}” is back on the tree for someone else. "
+                       "Thanks for letting us know!", "info")
+    # Whoever has this link has the giver's email, so it's fine to open their page.
+    request.session["claimant_token"] = claim_obj.claimant.token
+    return redirect(f"/my/{claim_obj.claimant.token}")
+
+
 # ------------------------------------------------------------------ "My ornaments"
 
 
@@ -164,14 +198,24 @@ def my_lookup(request: Request, db: Session = Depends(get_db)):
     token = request.session.get("claimant_token")
     if token and db.query(Claimant).filter(Claimant.token == token).count():
         return redirect(f"/my/{token}")
-    return render(request, db, "my_lookup.html")
+    return render(request, db, "my_lookup.html", {"email": ""})
 
 
 @router.post("/my")
 def my_lookup_send(request: Request, db: Session = Depends(get_db), email: str = Form(""), csrf: str = Form("")):
     check_csrf(request, csrf)
-    if not limiter.allow(f"lookup:{client_ip(request)}", 10, 3600):
+    if not limiter.allow(f"lookup:{client_ip(request)}", 30, 3600):
         raise HTTPException(429, "Too many requests. Please try again later.")
+    if ss.lookup_by_email(ss.get_all(db)):
+        claimant = db.query(Claimant).filter(Claimant.email == normalize_email(email)).one_or_none()
+        if not claimant:
+            return render(request, db, "my_lookup.html", {
+                "email": email,
+                "error": "We couldn't find any ornaments claimed with that email. Check the spelling, "
+                         "or pick an ornament from the tree!",
+            }, status_code=404)
+        request.session["claimant_token"] = claimant.token
+        return redirect(f"/my/{claimant.token}")
     send_manage_link(db, email)
     flash(request, "If that email has claimed any ornaments, we've sent it a private link. Check your inbox!",
           "success")

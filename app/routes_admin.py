@@ -5,10 +5,12 @@ import io
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
+from markupsafe import escape
 from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
 
+from . import email_copy, emailer
 from . import site_settings as ss
 from .db import get_db
 from .models import (
@@ -17,12 +19,13 @@ from .models import (
     Claim,
     Claimant,
     EmailLog,
+    EmailTemplate,
     Family,
     Item,
 )
 from .scheduler import run_jobs
 from .security import check_csrf, client_ip, hash_password, limiter, verify_password
-from .services import mark_fulfilled, release_claim, reopen_claim, resend_confirmation
+from .services import mark_fulfilled, release_claim, reopen_claim, resend_confirmation, site_context
 from .templating import fmt_dt
 from .web import flash, redirect, render
 
@@ -431,8 +434,12 @@ async def settings_save(request: Request, db: Session = Depends(get_db), admin: 
     check_csrf(request, form.get("csrf"))
     updates = {}
     for key in ss.DEFAULTS:
-        if key in ("require_confirmation", "claims_open", "show_families"):
+        if key in ("claims_open", "show_families"):  # checkboxes: absent when unticked
             updates[key] = "1" if form.get(key) else "0"
+        elif key == "require_confirmation":  # radio buttons sending "0" / "1"
+            updates[key] = "1" if form.get(key) == "1" else "0"
+        elif key == "lookup_mode":
+            updates[key] = "link" if form.get(key) == "link" else "email"
         elif key in form:
             updates[key] = str(form.get(key)).strip()
     if updates.get("deadline") and ss.deadline(updates) is None:
@@ -472,6 +479,84 @@ def run_jobs_now(request: Request, admin: AdminUser = Depends(require_admin), cs
     run_jobs()
     flash(request, "Reminder job ran. Check the Emails page for anything that was sent.", "info")
     return redirect("/admin/emails")
+
+
+# ------------------------------------------------------------------ email wording
+
+
+def _email_form(form, key: str) -> dict:
+    default = email_copy.DEFAULTS[key]
+    subject = " ".join(str(form.get("subject", "")).split())[:300]
+    return {
+        "subject": subject or default["subject"],
+        "intro": str(form.get("intro", "")).strip(),
+        "outro": str(form.get("outro", "")).strip(),
+    }
+
+
+@router.get("/email-text")
+def email_text_page(request: Request, db: Session = Depends(get_db), admin: AdminUser = Depends(require_admin),
+                    open: str = ""):
+    custom = {row.key for row in db.query(EmailTemplate).all()}
+    emails = [
+        {"key": key, "meta": meta, "wording": email_copy.stored(db, key), "custom": key in custom}
+        for key, meta in email_copy.DEFAULTS.items()
+    ]
+    return render(request, db, "admin/email_text.html", {"emails": emails, "open_key": open})
+
+
+@router.post("/email-text/{key}")
+async def email_text_save(key: str, request: Request, db: Session = Depends(get_db),
+                          admin: AdminUser = Depends(require_admin)):
+    form = await request.form()
+    check_csrf(request, form.get("csrf"))
+    if key not in email_copy.DEFAULTS:
+        raise HTTPException(404, "Unknown email.")
+    values = _email_form(form, key)
+    row = db.get(EmailTemplate, key) or EmailTemplate(key=key)
+    row.subject, row.intro, row.outro = values["subject"], values["intro"], values["outro"]
+    db.add(row)
+    db.commit()
+    flash(request, f"Saved the “{email_copy.DEFAULTS[key]['label']}” email.", "success")
+    unknown = email_copy.unknown_placeholders(key, *values.values())
+    if unknown:
+        flash(request, "These placeholders aren't available in this email and will appear exactly as typed: "
+              + ", ".join("{" + u + "}" for u in unknown), "error")
+    return redirect(f"/admin/email-text?open={key}#{key}")
+
+
+@router.post("/email-text/{key}/reset")
+def email_text_reset(key: str, request: Request, db: Session = Depends(get_db),
+                     admin: AdminUser = Depends(require_admin), csrf: str = Form("")):
+    check_csrf(request, csrf)
+    row = db.get(EmailTemplate, key)
+    if row:
+        db.delete(row)
+        db.commit()
+    flash(request, "Restored the original wording.", "info")
+    return redirect(f"/admin/email-text?open={key}#{key}")
+
+
+@router.post("/email-text/{key}/preview")
+async def email_text_preview(key: str, request: Request, db: Session = Depends(get_db),
+                             admin: AdminUser = Depends(require_admin)):
+    form = await request.form()
+    check_csrf(request, form.get("csrf"))
+    if key not in email_copy.DEFAULTS:
+        raise HTTPException(404, "Unknown email.")
+    ctx = email_copy.sample_context(site_context(db))
+    subject, text, html = emailer.render(key, ctx, copy_override=_email_form(form, key))
+    page = f"""<!doctype html><html><head><meta charset="utf-8"><title>Preview: {escape(subject)}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{{margin:0;font:14px/1.5 system-ui,sans-serif;background:#eee;color:#222}}
+.bar{{background:#123f28;color:#fff;padding:12px 16px}} .bar b{{font-weight:600}}
+.wrap{{max-width:760px;margin:0 auto;padding:16px}} iframe{{width:100%;height:720px;border:0;background:#fff;border-radius:8px}}
+pre{{white-space:pre-wrap;background:#fff;padding:16px;border-radius:8px}}</style></head><body>
+<div class="bar">Preview with sample data (giver “Alex”, ornament #12 “Winter coat”). Nothing was saved or sent.</div>
+<div class="wrap"><p><b>Subject:</b> {escape(subject)}</p>
+<iframe srcdoc="{escape(html)}" title="Email preview"></iframe>
+<h3>Plain-text version</h3><pre>{escape(text)}</pre></div></body></html>"""
+    return HTMLResponse(page)
 
 
 # ------------------------------------------------------------------ emails log

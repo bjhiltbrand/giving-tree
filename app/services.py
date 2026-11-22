@@ -11,6 +11,7 @@ from . import site_settings as ss
 from .models import Claim, Claimant, Item, utcnow
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+EXPIRED_REASON = "Confirmation link expired"
 _claim_lock = threading.Lock()  # app runs as a single process; serialises "check stock -> insert"
 
 
@@ -119,7 +120,7 @@ def confirm_claim(db: Session, token: str) -> Claim | None:
                    claimant=claim.claimant, manage_url=manage_url(claim.claimant))
         emailer.send(claim.claimant.email, "claim_confirmation", ctx)
         notify_admin(db, "admin_new_claim", claim)
-    elif claim.status == "released" and claim.release_reason == "Confirmation link expired":
+    elif claim.status == "released" and claim.release_reason == EXPIRED_REASON:
         # Late click: re-activate if the item is still available.
         with _claim_lock:
             db.refresh(claim.item)
@@ -143,7 +144,8 @@ def release_claim(db: Session, claim: Claim, reason: str, by_admin: bool = False
     ctx = dict(site_context(db), claim=claim, item=claim.item, family=claim.item.family,
                claimant=claim.claimant, manage_url=manage_url(claim.claimant), by_admin=by_admin, reason=reason)
     if notify:
-        emailer.send(claim.claimant.email, "released", ctx)
+        expired = reason == EXPIRED_REASON
+        emailer.send(claim.claimant.email, "hold_expired" if expired else "released", ctx)
     if not by_admin:
         notify_admin(db, "admin_released", claim)
 

@@ -30,6 +30,9 @@ DEFAULTS: dict[str, str] = {
     # "1" = group the public list by family (alias + description shown).
     # "0" = one combined list; family names/descriptions never appear publicly or in giver emails.
     "show_families": "1",
+    # How givers get to "My ornaments": "email" = type their email address and see their ornaments
+    # right away; "link" = we email them a private link (only someone with the inbox can see them).
+    "lookup_mode": "email",
     "claims_open": "1",
     "closed_message": "Claiming is closed for this season. Thank you to everyone who gave!",
 }
@@ -63,6 +66,10 @@ def as_int(value: str, default: int = 0) -> int:
         return int(str(value).strip())
     except ValueError:
         return default
+
+
+def lookup_by_email(values: dict[str, str]) -> bool:
+    return values.get("lookup_mode", "email") != "link"
 
 
 def show_families(values: dict[str, str]) -> bool:
