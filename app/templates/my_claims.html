@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}My ornaments · {{ site.site_title }}{% endblock %}
+{% block content %}
+<section class="wrap narrow">
+  <div class="panel">
+    <h1>Hi {{ claimant.name or 'there' }} 👋</h1>
+    <p class="muted">Ornaments claimed by <strong>{{ claimant.email }}</strong>. Bookmark this page — it's your private link.</p>
+    {% if deadline %}<p class="deadline-pill light">🎁 Drop-off deadline: <strong>{{ deadline|longdate }}</strong></p>{% endif %}
+    {% if site.dropoff_instructions %}<p class="pre small">{{ site.dropoff_instructions }}</p>{% endif %}
+
+    {% if not active %}
+      <p class="empty">You don't have any ornaments right now. <a href="/">Visit the tree</a> to pick one!</p>
+    {% endif %}
+
+    <ul class="my-list">
+      {% for c in active %}
+      <li class="my-item status-{{ c.status }}">
+        <div>
+          <span class="dot cat-{{ c.item.category }}" aria-hidden="true"></span>
+          <strong>{{ c.item.title }}</strong>{% if c.quantity > 1 %} ×{{ c.quantity }}{% endif %}
+          <div class="small muted">Ornament #{{ c.item.id }} · {{ c.item.family.alias }}{% if c.item.recipient %} · For: {{ c.item.recipient }}{% endif %}{% if c.item.size %} · Size: {{ c.item.size }}{% endif %}</div>
+          <span class="status-chip">{{ c.status_label }}</span>
+        </div>
+        <div class="my-actions">
+          {% if c.status == 'claimed' %}
+          <form method="post" action="/my/{{ claimant.token }}/claims/{{ c.id }}/delivered">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <button class="btn btn-small btn-primary" type="submit">I dropped it off</button>
+          </form>
+          {% endif %}
+          {% if c.status in ('pending', 'claimed') %}
+          <form method="post" action="/my/{{ claimant.token }}/claims/{{ c.id }}/release"
+                onsubmit="return confirm('Put this ornament back on the tree for someone else?')">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <button class="btn btn-small btn-ghost" type="submit">I can't do this one</button>
+          </form>
+          {% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% if released %}
+    <details class="small muted"><summary>Released ornaments ({{ released|length }})</summary>
+      <ul>{% for c in released %}<li>{{ c.item.title }} — {{ c.release_reason }}</li>{% endfor %}</ul>
+    </details>
+    {% endif %}
+
+    <hr>
+    <form method="post" action="/my/{{ claimant.token }}/reminders" class="inline-form">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="hidden" name="enabled" value="{{ '0' if claimant.reminders_enabled else '1' }}">
+      <span>Reminder emails are <strong>{{ 'on' if claimant.reminders_enabled else 'off' }}</strong>.</span>
+      <button class="btn btn-small btn-ghost" type="submit">Turn {{ 'off' if claimant.reminders_enabled else 'on' }}</button>
+    </form>
+    <form method="post" action="/my/forget" class="inline-form">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <span class="small muted">Using a shared computer?</span>
+      <button class="btn btn-small btn-ghost" type="submit">Forget me on this device</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

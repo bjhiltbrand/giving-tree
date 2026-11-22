@@ -1,0 +1,96 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import claim_table %}
+{% from "admin/_item_fields.html" import item_fields %}
+{% block admin %}
+<a class="back" href="/admin">← Dashboard</a>
+<div class="admin-head">
+  <div>
+    <h1>{{ family.alias }} {% if not family.is_active %}<span class="chip chip-hidden">Hidden</span>{% endif %}</h1>
+    {% if family.description %}<p class="muted" style="margin:.3rem 0 0">{{ family.description }}</p>{% endif %}
+  </div>
+  <div class="btn-row" style="display:flex; gap:.5rem">
+    <a class="btn" href="/admin/families/{{ family.id }}/edit">Edit family</a>
+    <form method="post" action="/admin/families/{{ family.id }}/delete" onsubmit="return confirm('Delete this family and all of its items? This cannot be undone.')">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <button class="btn btn-danger" type="submit">Delete</button>
+    </form>
+  </div>
+</div>
+
+{% if family.private_notes %}
+<div class="panel section small"><strong>Private notes</strong><p class="pre" style="margin:.4rem 0 0">{{ family.private_notes }}</p></div>
+{% endif %}
+
+<div class="section">
+  <h2>Wish list</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Item</th><th>Type</th><th>Qty</th><th>Status</th><th>Givers</th><th></th></tr></thead>
+    <tbody>
+    {% for item in family.items %}
+      <tr class="{{ '' if item.is_active else 'inactive' }}">
+        <td>{{ item.id }}</td>
+        <td><strong>{{ item.title }}</strong>
+          <div class="small muted">{% if item.recipient %}For: {{ item.recipient }}{% endif %}{% if item.size %} · Size: {{ item.size }}{% endif %}</div></td>
+        <td><span class="dot cat-{{ item.category }}"></span> {{ item.category_label }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>
+          {% if not item.is_active %}<span class="chip chip-hidden">Hidden</span>
+          {% else %}<span class="chip chip-{{ item.state }}">{{ {'open':'Available','partial':'%d left' % item.remaining,'claimed':'Claimed','fulfilled':'Received'}[item.state] }}</span>{% endif %}
+        </td>
+        <td class="small">
+          {% for c in item.claims if c.status != 'released' %}
+            <div>{{ c.claimant.name or c.claimant.email }}{% if c.quantity > 1 %} ×{{ c.quantity }}{% endif %} <span class="chip chip-{{ c.status }}">{{ c.status_label }}</span></div>
+          {% endfor %}
+        </td>
+        <td>
+          <div class="btn-row">
+            <a class="btn btn-small" href="/admin/items/{{ item.id }}">Edit</a>
+            <form method="post" action="/admin/items/{{ item.id }}/duplicate"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn btn-small btn-ghost" type="submit">Duplicate</button></form>
+            <form method="post" action="/admin/items/{{ item.id }}/delete" onsubmit="return confirm('Delete this item?')"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn btn-small btn-danger" type="submit">Delete</button></form>
+          </div>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="7" class="muted">No items yet — add some below.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="grid-2 section">
+  <div class="panel" id="add-item">
+    <h3>Add an item</h3>
+    <form method="post" action="/admin/families/{{ family.id }}/items">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      {{ item_fields(None) }}
+      <button class="btn btn-green" type="submit">Add to tree</button>
+    </form>
+  </div>
+  <div class="panel">
+    <h3>Quick add several</h3>
+    <p class="small muted">One item per line. Only the title is required; separate optional fields with <code>|</code>:<br>
+      <code>Title | Recipient | Size | Type | Quantity</code></p>
+    <form method="post" action="/admin/families/{{ family.id }}/items/bulk">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label class="field"><span>Items</span>
+        <textarea name="lines" rows="9" placeholder="Winter coat | Boy, age 7 | Youth M | clothing
+Snow boots | Boy, age 7 | Size 2 | clothing
+LEGO set | Boy, age 7 | | toys
+$25 grocery gift card | Family | | gift card | 4
+Chapter books | Girl, age 10 | | books"></textarea></label>
+      <label class="field"><span>Type when not given</span>
+        <select name="default_category">{% for key, label in CATEGORIES.items() %}<option value="{{ key }}" {% if key == 'other' %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+      <button class="btn btn-green" type="submit">Add all</button>
+    </form>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Claims for this family</h2>
+  {% set fam_claims = [] %}
+  {% for item in family.items %}{% for c in item.claims %}{% set _ = fam_claims.append(c) %}{% endfor %}{% endfor %}
+  {{ claim_table(fam_claims|sort(attribute='created_at', reverse=True), csrf, show_family=False) }}
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% block subject %}Your private link for {{ site.site_title }}{% endblock %}
+
+{% block text %}
+Hi {{ claimant.name or 'there' }},
+
+Here's your private link to see and manage the ornaments you've claimed:
+{{ manage_url }}
+
+If you didn't ask for this, you can ignore this email.
+{% endblock %}
+
+{% block html %}
+{% call L.wrap(site, "If you didn't ask for this, you can safely ignore it.") %}
+<p>Hi {{ claimant.name or 'there' }},</p>
+<p>Here's your private link to see and manage the ornaments you've claimed:</p>
+{{ L.button(manage_url, "View my ornaments") }}
+{% endcall %}
+{% endblock %}

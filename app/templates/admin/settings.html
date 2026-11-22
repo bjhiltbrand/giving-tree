@@ -1,0 +1,52 @@
+{% extends "admin/base.html" %}
+{% block admin %}
+<div class="admin-head"><h1>Settings</h1></div>
+<form method="post" action="/admin/settings">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <div class="grid-2">
+    <div class="panel">
+      <h3>The tree</h3>
+      <label class="field"><span>Site title</span><input name="site_title" value="{{ values.site_title }}" required></label>
+      <label class="field"><span>Welcome message</span><textarea name="intro_text" rows="5">{{ values.intro_text }}</textarea></label>
+      <label class="field"><span>Drop-off deadline</span><input type="date" name="deadline" value="{{ values.deadline }}">
+        <span class="help">Shown on the site and used for reminder emails.</span></label>
+      <label class="field"><span>Drop-off instructions</span><textarea name="dropoff_instructions" rows="4" placeholder="Where, when, wrapped or unwrapped…">{{ values.dropoff_instructions }}</textarea>
+        <span class="help">Included on the thank-you page and in every confirmation/reminder email.</span></label>
+      <label class="field"><span>Public contact email <em>(optional)</em></span><input type="email" name="contact_email" value="{{ values.contact_email }}"></label>
+      <label class="check"><input type="checkbox" name="claims_open" value="1" {% if values.claims_open == '1' %}checked{% endif %}> Claiming is open</label>
+      <label class="field"><span>Message when claiming is closed</span><input name="closed_message" value="{{ values.closed_message }}"></label>
+    </div>
+    <div class="panel">
+      <h3>Claims &amp; emails</h3>
+      <label class="field"><span>Max quantity per claim</span><input type="number" min="1" name="max_claim_qty" value="{{ values.max_claim_qty }}">
+        <span class="help">For items with quantity &gt; 1 (e.g. gift cards).</span></label>
+      <label class="check"><input type="checkbox" name="require_confirmation" value="1" {% if values.require_confirmation == '1' %}checked{% endif %}>
+        <span>Require email confirmation<br><span class="help">Claims are held until the visitor clicks a link in their email. Stops typos and fake addresses, but adds a step.</span></span></label>
+      <label class="field"><span>Release unconfirmed claims after (hours)</span><input type="number" min="1" name="confirm_window_hours" value="{{ values.confirm_window_hours }}"></label>
+      <label class="field"><span>Reminder schedule (days before deadline)</span><input name="reminder_days" value="{{ values.reminder_days }}" placeholder="7,2">
+        <span class="help">Comma separated. <code>7,2</code> sends a reminder a week before and two days before. Leave blank for none. People who claim inside a window won't get that reminder.</span></label>
+      <label class="field"><span>Check-in email N days after claiming (0 = off)</span><input type="number" min="0" name="followup_days" value="{{ values.followup_days }}">
+        <span class="help">Useful if there's no deadline yet, or a long season.</span></label>
+      <label class="field"><span>Notify organizers at</span><input name="admin_notify_email" value="{{ values.admin_notify_email }}" placeholder="you@example.com, helper@example.com">
+        <span class="help">Gets an email when ornaments are claimed, dropped off or released. Comma separated.</span></label>
+    </div>
+  </div>
+  <p><button class="btn btn-green btn-lg" style="width:auto" type="submit">Save settings</button></p>
+</form>
+
+<div class="panel section" style="max-width: 760px">
+  <h3>Email delivery</h3>
+  <p class="small muted">SMTP is configured in <code>.env</code> (see the README for Mailcow and Gmail setups). Send yourself a test to check it.</p>
+  <form method="post" action="/admin/test-email" class="inline-form">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <label class="field grow"><span>Send a test to</span><input type="email" name="to" required value="{{ values.admin_notify_email.split(',')[0] if values.admin_notify_email else '' }}"></label>
+    <button class="btn" type="submit">Send test email</button>
+  </form>
+</div>
+
+<div class="panel" style="max-width: 760px">
+  <h3>Reminder job</h3>
+  <p class="small muted">Reminders and expired holds are processed automatically in the background every few minutes. You can also run it now.</p>
+  <form method="post" action="/admin/run-jobs"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn" type="submit">Run reminder job now</button></form>
+</div>
+{% endblock %}

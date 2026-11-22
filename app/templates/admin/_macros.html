@@ -1,0 +1,60 @@
+{% macro claim_actions(c, csrf) %}
+<div class="btn-row">
+  {% if c.status in ('claimed', 'delivered', 'pending') %}
+  <form method="post" action="/admin/claims/{{ c.id }}/fulfill" title="Mark as received and email a thank-you">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <button class="btn btn-small btn-green" type="submit">Received ✓</button>
+  </form>
+  {% endif %}
+  {% if c.status in ('claimed', 'pending') %}
+  <form method="post" action="/admin/claims/{{ c.id }}/resend">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <button class="btn btn-small" type="submit" title="Re-send the confirmation email">Resend email</button>
+  </form>
+  {% endif %}
+  {% if c.status in ('claimed', 'delivered', 'pending') %}
+  <form method="post" action="/admin/claims/{{ c.id }}/release"
+        onsubmit="var r = prompt('Release this ornament back onto the tree? Optional reason (emailed to the giver):', ''); if (r === null) return false; this.reason.value = r; return true;">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <input type="hidden" name="reason" value="">
+    <button class="btn btn-small btn-danger" type="submit">Release</button>
+  </form>
+  {% endif %}
+  {% if c.status in ('fulfilled', 'delivered') %}
+  <form method="post" action="/admin/claims/{{ c.id }}/reopen">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <button class="btn btn-small btn-ghost" type="submit" title="Undo: move back to Claimed">Undo</button>
+  </form>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{% macro claim_table(claims, csrf, show_family=True) %}
+<div class="table-wrap">
+<table>
+  <thead><tr>
+    <th>#</th><th>Item</th>{% if show_family %}<th>Family</th>{% endif %}<th>Giver</th><th>Status</th><th>Claimed</th><th></th>
+  </tr></thead>
+  <tbody>
+  {% for c in claims %}
+  <tr>
+    <td>{{ c.item.id }}</td>
+    <td><strong>{{ c.item.title }}</strong>{% if c.quantity > 1 %} ×{{ c.quantity }}{% endif %}
+      {% if c.item.recipient or c.item.size %}<div class="small muted">{{ c.item.recipient }}{% if c.item.size %} · {{ c.item.size }}{% endif %}</div>{% endif %}
+      {% if c.note %}<div class="small">💬 {{ c.note }}</div>{% endif %}
+    </td>
+    {% if show_family %}<td><a href="/admin/families/{{ c.item.family.id }}">{{ c.item.family.alias }}</a></td>{% endif %}
+    <td>{{ c.claimant.name }}<div class="small"><a href="mailto:{{ c.claimant.email }}">{{ c.claimant.email }}</a></div></td>
+    <td><span class="chip chip-{{ c.status }}">{{ c.status_label }}</span>
+      {% if c.status == 'released' and c.release_reason %}<div class="small muted">{{ c.release_reason }}</div>{% endif %}
+    </td>
+    <td class="small">{{ c.created_at|localdt }}</td>
+    <td>{{ claim_actions(c, csrf) }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7" class="muted">No claims yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endmacro %}

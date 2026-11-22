@@ -1,0 +1,12 @@
+{% block subject %}Test email from {{ site.site_title }}{% endblock %}
+
+{% block text %}
+It works! This test email was sent by your Giving Tree via {{ smtp_host }}.
+{% endblock %}
+
+{% block html %}
+{% call L.wrap(site) %}
+<p><strong>It works!</strong> 🎉</p>
+<p>This test email was sent by your Giving Tree via <code>{{ smtp_host }}</code>.</p>
+{% endcall %}
+{% endblock %}

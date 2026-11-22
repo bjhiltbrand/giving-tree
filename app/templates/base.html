@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ site.site_title }}{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css?v=1">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎄</text></svg>">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="/"><span aria-hidden="true">🎄</span> {{ site.site_title }}</a>
+      <nav class="topnav">
+        {% block nav %}
+        <a href="/">The Tree</a>
+        <a href="/my">My ornaments</a>
+        {% if admin_user %}<a href="/admin">Admin</a>{% endif %}
+        {% endblock %}
+      </nav>
+    </div>
+  </header>
+
+  {% if flashes %}
+  <div class="wrap flashes">
+    {% for kind, msg in flashes %}<div class="flash flash-{{ kind }}" role="status">{{ msg }}</div>{% endfor %}
+  </div>
+  {% endif %}
+
+  <main>{% block content %}{% endblock %}</main>
+
+  <footer class="footer">
+    <div class="wrap">
+      {% block footer %}
+      {% if site.contact_email %}Questions? <a href="mailto:{{ site.contact_email }}">{{ site.contact_email }}</a>{% endif %}
+      {% endblock %}
+    </div>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}My ornaments · {{ site.site_title }}{% endblock %}
+{% block content %}
+<section class="wrap narrow">
+  <div class="panel">
+    <h1>My ornaments</h1>
+    <p>There are no passwords here. Enter the email you used to claim and we'll send you a private link to see
+       your ornaments, release one, or let us know you've dropped it off.</p>
+    <form method="post" action="/my" class="inline-form">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label class="field grow"><span>Email</span>
+        <input type="email" name="email" required autocomplete="email"></label>
+      <button class="btn btn-primary" type="submit">Email me my link</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

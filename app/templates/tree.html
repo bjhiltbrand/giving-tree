@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% from "_claim_form.html" import claim_form %}
+{% block body_class %}page-tree{% endblock %}
+{% block content %}
+{% set claims_open = site.claims_open in ('1', 'true', 'on') %}
+<section class="hero">
+  <div class="snow" aria-hidden="true"></div>
+  <div class="wrap hero-inner">
+    <div class="hero-copy">
+      <h1>{{ site.site_title }}</h1>
+      <p class="lede">{{ site.intro_text }}</p>
+      {% if deadline %}
+      <p class="deadline-pill">🎁 Please drop off gifts by <strong>{{ deadline|longdate }}</strong></p>
+      {% endif %}
+      {% if total %}
+      <div class="progress" aria-label="{{ claimed }} of {{ total }} gifts claimed">
+        <div class="progress-bar" style="width: {{ (claimed / total * 100)|round(0) }}%"></div>
+      </div>
+      <p class="progress-label"><strong>{{ claimed }}</strong> of {{ total }} gifts claimed{% if claimed >= total %} — every ornament has a giver! 🎉{% endif %}</p>
+      {% endif %}
+      {% if not claims_open %}<p class="flash flash-info">{{ site.closed_message }}</p>{% endif %}
+    </div>
+
+    <div class="tree-wrap">
+      <svg id="tree" class="tree" role="group" aria-label="Giving tree ornaments" viewBox="0 0 600 720"></svg>
+      <div id="tree-tip" class="tree-tip" hidden></div>
+      <noscript><p class="noscript">Turn on JavaScript to see the tree — or browse the list below.</p></noscript>
+    </div>
+  </div>
+</section>
+
+<section class="wrap filters-bar" aria-label="Filter ornaments">
+  <label>Family
+    <select id="f-family">
+      <option value="">All families</option>
+      {% for fam in families %}<option value="{{ fam.id }}">{{ fam.alias }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Type
+    <select id="f-category">
+      <option value="">Any type</option>
+      {% for key, label in CATEGORIES.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="check"><input type="checkbox" id="f-available" checked> Only show available</label>
+  <div class="legend" aria-hidden="true">
+    {% for key, label in CATEGORIES.items() %}<span class="legend-item"><i class="dot cat-{{ key }}"></i>{{ label }}</span>{% endfor %}
+  </div>
+</section>
+
+<section class="wrap list-view" id="list">
+  <h2>Every ornament</h2>
+  {% if not families %}
+  <p class="empty">The tree is still being decorated. Check back soon!</p>
+  {% endif %}
+  {% for fam in families %}
+  <div class="family-block" data-family="{{ fam.id }}">
+    <h3>{{ fam.alias }}</h3>
+    {% if fam.description %}<p class="muted">{{ fam.description }}</p>{% endif %}
+    <div class="cards">
+      {% for item in fam.items if item.is_active %}
+      <article class="card state-{{ item.state }}" data-id="{{ item.id }}" data-family="{{ fam.id }}"
+               data-category="{{ item.category }}" data-available="{{ 1 if item.remaining else 0 }}">
+        <div class="card-head">
+          <span class="dot cat-{{ item.category }}" aria-hidden="true"></span>
+          <span class="muted small">#{{ item.id }} · {{ item.category_label }}</span>
+        </div>
+        <h4>{{ item.title }}</h4>
+        <p class="small">
+          {% if item.recipient %}For: {{ item.recipient }}{% endif %}
+          {% if item.size %}{% if item.recipient %} · {% endif %}Size: {{ item.size }}{% endif %}
+        </p>
+        {% if item.remaining %}
+          {% if item.quantity > 1 %}<p class="small muted">{{ item.remaining }} of {{ item.quantity }} still needed</p>{% endif %}
+          {% if claims_open %}<a class="btn btn-small js-open" href="/ornament/{{ item.id }}" data-id="{{ item.id }}">Claim</a>{% endif %}
+        {% else %}
+          <p class="badge">{{ 'Received 🎁' if item.state == 'fulfilled' else 'Claimed ✓' }}</p>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</section>
+
+<dialog id="claim-dialog" class="dialog" aria-labelledby="dlg-title">
+  <button class="dialog-close" type="button" aria-label="Close" data-close>×</button>
+  <div class="dlg-ornament" id="dlg-ornament" aria-hidden="true"></div>
+  <p class="muted small" id="dlg-meta"></p>
+  <h2 id="dlg-title"></h2>
+  <dl class="dlg-details" id="dlg-details"></dl>
+  <p id="dlg-desc"></p>
+  <p id="dlg-link" hidden><a target="_blank" rel="noopener noreferrer">See an example ↗</a></p>
+  <p class="muted small" id="dlg-family"></p>
+  <div id="dlg-claimed" class="flash flash-info" hidden>This ornament has already been claimed — thank you to its giver! Please choose another.</div>
+  <div id="dlg-form">
+    {{ claim_form("", csrf, remember, {}, 1, site.require_confirmation in ('1','true','on')) }}
+  </div>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script id="tree-data" type="application/json">{{ {"items": items, "claimsOpen": site.claims_open in ('1', 'true', 'on'), "maxQty": site.max_claim_qty|int}|tojson }}</script>
+<script src="/static/js/tree.js?v=1"></script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_claim_form.html" import claim_form %}
+{% block title %}{{ item.title }} · {{ site.site_title }}{% endblock %}
+{% block content %}
+{% set max_claim = site.max_claim_qty|int %}
+<section class="wrap narrow">
+  <a class="back" href="/">← Back to the tree</a>
+  <div class="panel">
+    <div class="dlg-ornament cat-{{ item.category }}" aria-hidden="true"></div>
+    <p class="muted small">Ornament #{{ item.id }} · {{ item.category_label }}</p>
+    <h1>{{ item.title }}</h1>
+    <dl class="dlg-details">
+      {% if item.recipient %}<dt>For</dt><dd>{{ item.recipient }}</dd>{% endif %}
+      {% if item.size %}<dt>Size</dt><dd>{{ item.size }}</dd>{% endif %}
+      {% if item.quantity > 1 %}<dt>Needed</dt><dd>{{ item.remaining }} of {{ item.quantity }}</dd>{% endif %}
+    </dl>
+    {% if item.description %}<p class="pre">{{ item.description }}</p>{% endif %}
+    {% if item.link_url %}<p><a href="{{ item.link_url }}" target="_blank" rel="noopener noreferrer">See an example ↗</a></p>{% endif %}
+    <p class="muted small">From the wish list of <strong>{{ item.family.alias }}</strong>{% if item.family.description %} — {{ item.family.description }}{% endif %}</p>
+
+    {% if error %}<div class="flash flash-error" role="alert">{{ error }}</div>{% endif %}
+
+    {% if site.claims_open not in ('1', 'true', 'on') %}
+      <div class="flash flash-info">{{ site.closed_message }}</div>
+    {% elif item.remaining %}
+      {{ claim_form("/ornament/" ~ item.id ~ "/claim", csrf, remember, form,
+                    [item.remaining, max_claim if max_claim > 0 else 1]|min,
+                    site.require_confirmation in ('1','true','on')) }}
+    {% else %}
+      <div class="flash flash-info">This ornament has already been claimed — thank you to its giver! <a href="/">Choose another</a>.</div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

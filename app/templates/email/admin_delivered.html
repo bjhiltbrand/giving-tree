@@ -1,0 +1,18 @@
+{% block subject %}[Giving Tree] Dropped off: "{{ item.title }}" from {{ claimant.name or claimant.email }}{% endblock %}
+
+{% block text %}
+{{ claimant.name }} <{{ claimant.email }}> says they've dropped off:
+
+{{ L.item_text(item, claim) }}
+Mark it received to send them a thank-you:
+{{ BASE_URL }}/admin
+{% endblock %}
+
+{% block html %}
+{% call L.wrap(site) %}
+<p><strong>{{ claimant.name }}</strong> &lt;{{ claimant.email }}&gt; says they've dropped off:</p>
+{{ L.item_box(item, claim) }}
+<p>Once you have it, mark it received to send them a thank-you.</p>
+{{ L.button(BASE_URL ~ "/admin", "Open dashboard") }}
+{% endcall %}
+{% endblock %}

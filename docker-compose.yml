@@ -1,0 +1,26 @@
+services:
+  giving-tree:
+    build: .
+    image: giving-tree:latest
+    container_name: giving-tree
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      # Point your reverse proxy at this port. Change the left side if 8000 is taken.
+      - "${HOST_PORT:-8000}:8000"
+    volumes:
+      - giving-tree-data:/data
+
+  # Optional: a local catch-all mail server with a web inbox at http://<host>:8025
+  # for testing emails before you hook up real SMTP. Start it with:
+  #   docker compose --profile mailtest up -d
+  # and set SMTP_HOST=mailpit, SMTP_PORT=1025, SMTP_SECURITY=none in .env
+  mailpit:
+    image: axllent/mailpit:v1.21
+    profiles: ["mailtest"]
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+
+volumes:
+  giving-tree-data:

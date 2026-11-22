@@ -1,0 +1,24 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import claim_table %}
+{% block admin %}
+<div class="admin-head">
+  <h1>Claims</h1>
+  <a class="btn" href="/admin/claims.csv?status={{ status }}&family={{ family_id or '' }}&q={{ q|urlencode }}">⬇ Export CSV</a>
+</div>
+<form class="filters-inline" method="get">
+  <label class="field"><span>Status</span>
+    <select name="status" onchange="this.form.submit()">
+      {% for key, label in [('open','Open (not yet received)'),('all','All')] + CLAIM_STATUSES.items()|list %}
+      <option value="{{ key }}" {% if status == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select></label>
+  <label class="field"><span>Family</span>
+    <select name="family" onchange="this.form.submit()">
+      <option value="">All families</option>
+      {% for fam in families %}<option value="{{ fam.id }}" {% if family_id == fam.id %}selected{% endif %}>{{ fam.alias }}</option>{% endfor %}
+    </select></label>
+  <label class="field"><span>Search</span><input name="q" value="{{ q }}" placeholder="Name, email or item"></label>
+  <button class="btn" type="submit">Filter</button>
+</form>
+<p class="muted small">{{ claims|length }} claim(s)</p>
+{{ claim_table(claims, csrf) }}
+{% endblock %}

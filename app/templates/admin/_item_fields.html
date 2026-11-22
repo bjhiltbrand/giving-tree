@@ -1,0 +1,24 @@
+{% macro item_fields(item) %}
+<div class="form-grid">
+  <label class="field span-all"><span>Item</span>
+    <input name="title" required maxlength="200" value="{{ item.title if item else '' }}" placeholder="e.g. Winter coat"></label>
+  <label class="field"><span>For <em>(recipient)</em></span>
+    <input name="recipient" maxlength="120" value="{{ item.recipient if item else '' }}" placeholder="e.g. Girl, age 8"></label>
+  <label class="field"><span>Size <em>(optional)</em></span>
+    <input name="size" maxlength="80" value="{{ item.size if item else '' }}" placeholder="e.g. Youth L / 10-12"></label>
+  <label class="field"><span>Type</span>
+    <select name="category">
+      {% for key, label in CATEGORIES.items() %}<option value="{{ key }}" {% if item and item.category == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select></label>
+  <label class="field"><span>Quantity</span>
+    <input type="number" name="quantity" min="1" value="{{ item.quantity if item else 1 }}">
+    <span class="help">e.g. 4 × $25 gift cards. Each giver can claim some.</span></label>
+  <label class="field span-all"><span>Details <em>(optional)</em></span>
+    <textarea name="description" rows="3" placeholder="Favorite colors, interests, brand preferences…">{{ item.description if item else '' }}</textarea></label>
+  <label class="field span-all"><span>Example link <em>(optional)</em></span>
+    <input name="link_url" maxlength="500" value="{{ item.link_url if item else '' }}" placeholder="https://…"></label>
+  <label class="field"><span>Sort order</span>
+    <input type="number" name="sort_order" value="{{ item.sort_order if item else 0 }}"></label>
+  <label class="check" style="align-self:center"><input type="checkbox" name="is_active" value="1" {% if not item or item.is_active %}checked{% endif %}> Visible on the tree</label>
+</div>
+{% endmacro %}

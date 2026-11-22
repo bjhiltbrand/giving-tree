@@ -1,0 +1,23 @@
+{% extends "admin/base.html" %}
+{% block admin %}
+<a class="back" href="{{ '/admin/families/%d' % family.id if family else '/admin' }}">← Back</a>
+<div class="panel" style="max-width: 760px;">
+  <h1>{{ 'Edit family' if family else 'Add a family' }}</h1>
+  <form method="post">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <label class="field"><span>Public name</span>
+      <input name="alias" required maxlength="120" value="{{ family.alias if family else '' }}" placeholder="e.g. Family A, or The Evergreen Family">
+      <span class="help">Shown on the tree. Use an alias to protect the family's privacy.</span></label>
+    <label class="field"><span>Public description <em>(optional)</em></span>
+      <textarea name="description" rows="2" placeholder="e.g. Mom and three kids (ages 4, 8 and 12)">{{ family.description if family else '' }}</textarea></label>
+    <label class="field"><span>Private notes <em>(admins only)</em></span>
+      <textarea name="private_notes" rows="4" placeholder="Real names, contact info, delivery details…">{{ family.private_notes if family else '' }}</textarea></label>
+    <div class="form-grid">
+      <label class="field"><span>Sort order</span>
+        <input type="number" name="sort_order" value="{{ family.sort_order if family else 0 }}"><span class="help">Lower numbers appear first.</span></label>
+      <label class="check" style="align-self:center"><input type="checkbox" name="is_active" value="1" {% if not family or family.is_active %}checked{% endif %}> Visible on the tree</label>
+    </div>
+    <button class="btn btn-green" type="submit">{{ 'Save' if family else 'Create family' }}</button>
+  </form>
+</div>
+{% endblock %}

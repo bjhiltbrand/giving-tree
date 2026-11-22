@@ -1,0 +1,19 @@
+{% block subject %}[Giving Tree] {{ claimant.name or claimant.email }} claimed "{{ item.title }}"{% endblock %}
+
+{% block text %}
+{{ claimant.name }} <{{ claimant.email }}> claimed:
+
+{{ L.item_text(item, claim) }}{% if claim.note %}
+Note: {{ claim.note }}
+{% endif %}
+{{ BASE_URL }}/admin/families/{{ family.id }}
+{% endblock %}
+
+{% block html %}
+{% call L.wrap(site) %}
+<p><strong>{{ claimant.name }}</strong> &lt;{{ claimant.email }}&gt; claimed:</p>
+{{ L.item_box(item, claim) }}
+{% if claim.note %}<p>💬 {{ claim.note }}</p>{% endif %}
+{{ L.button(BASE_URL ~ "/admin/families/" ~ family.id, "Open in admin") }}
+{% endcall %}
+{% endblock %}

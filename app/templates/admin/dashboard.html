@@ -1,0 +1,60 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import claim_table %}
+{% block admin %}
+<div class="admin-head">
+  <h1>Dashboard</h1>
+  <a class="btn btn-green" href="/admin/families/new">+ Add a family</a>
+</div>
+
+{% if failed_emails %}<div class="flash flash-error">{{ failed_emails }} email(s) failed to send. <a href="/admin/emails">See the email log</a> and check your SMTP settings.</div>{% endif %}
+{% if not deadline %}<div class="flash flash-info">No drop-off deadline is set, so deadline reminders won't go out. <a href="/admin/settings">Set one in Settings</a>.</div>{% endif %}
+
+<div class="stats">
+  <div class="stat"><b>{{ stats['items'] }}</b><span>gifts on the tree</span></div>
+  <div class="stat"><b>{{ stats['claimed'] }}</b><span>claimed ({{ ((stats['claimed'] / stats['items'] * 100) if stats['items'] else 0)|round|int }}%)</span></div>
+  <div class="stat"><b>{{ by_status.get('delivered', 0) }}</b><span>dropped off, awaiting check-in</span></div>
+  <div class="stat"><b>{{ stats['fulfilled'] }}</b><span>received</span></div>
+  <div class="stat"><b>{{ stats['items'] - stats['claimed'] }}</b><span>still available</span></div>
+</div>
+
+<div class="section">
+  <h2>Families</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Family</th><th>Items</th><th>Claimed</th><th>Received</th><th>Visible</th><th></th></tr></thead>
+    <tbody>
+    {% for fam in families %}
+      {% set active_items = fam.items|selectattr('is_active')|list %}
+      {% set qty = active_items|sum(attribute='quantity') %}
+      {% set claimed = active_items|sum(attribute='claimed_qty') %}
+      {% set received = active_items|sum(attribute='fulfilled_qty') %}
+      <tr class="{{ '' if fam.is_active else 'inactive' }}">
+        <td><a href="/admin/families/{{ fam.id }}"><strong>{{ fam.alias }}</strong></a>
+          {% if fam.description %}<div class="small muted">{{ fam.description }}</div>{% endif %}</td>
+        <td>{{ qty }}</td>
+        <td>{{ claimed }}</td>
+        <td>{{ received }}</td>
+        <td>{{ 'Yes' if fam.is_active else 'Hidden' }}</td>
+        <td><a class="btn btn-small" href="/admin/families/{{ fam.id }}">Manage list</a></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6" class="muted">No families yet. <a href="/admin/families/new">Add the first one</a> to start decorating the tree.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+{% if awaiting %}
+<div class="section">
+  <h2>Dropped off — please confirm receipt</h2>
+  <p class="muted small">Givers said they've dropped these off. Mark them received to send a thank-you email.</p>
+  {{ claim_table(awaiting, csrf) }}
+</div>
+{% endif %}
+
+<div class="section">
+  <div class="admin-head"><h2 style="margin:0">Latest claims</h2><a href="/admin/claims">All claims →</a></div>
+  {{ claim_table(recent, csrf) }}
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+{% from "admin/_item_fields.html" import item_fields %}
+{% from "admin/_macros.html" import claim_table %}
+{% block admin %}
+<a class="back" href="/admin/families/{{ item.family_id }}">← {{ item.family.alias }}</a>
+<div class="panel section" style="max-width: 760px;">
+  <h1>Edit ornament #{{ item.id }}</h1>
+  <form method="post" action="/admin/items/{{ item.id }}">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    {{ item_fields(item) }}
+    <button class="btn btn-green" type="submit">Save</button>
+  </form>
+</div>
+<h2>Claims</h2>
+{{ claim_table(item.claims, csrf, show_family=False) }}
+{% endblock %}

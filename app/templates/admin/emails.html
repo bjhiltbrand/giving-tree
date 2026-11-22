@@ -1,0 +1,24 @@
+{% extends "admin/base.html" %}
+{% block admin %}
+<div class="admin-head"><h1>Email log</h1></div>
+<p class="muted small">The last 200 emails. Status <code>logged</code> means SMTP isn't configured, so the message was written to the container log instead of being sent.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>When</th><th>To</th><th>Type</th><th>Subject</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for e in emails %}
+  <tr>
+    <td class="small">{{ e.created_at|localdt }}</td>
+    <td>{{ e.to_addr }}</td>
+    <td class="small">{{ e.kind }}</td>
+    <td>{{ e.subject }}</td>
+    <td><span class="chip chip-{{ {'sent':'fulfilled','logged':'claimed','failed':'released','queued':'pending'}[e.status] }}">{{ e.status }}</span>
+      {% if e.error %}<div class="small" style="color:var(--red)">{{ e.error }}</div>{% endif %}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5" class="muted">No emails yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

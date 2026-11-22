@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Thank you! · {{ site.site_title }}{% endblock %}
+{% block content %}
+<section class="wrap narrow">
+  <div class="panel center">
+    <div class="big-emoji" aria-hidden="true">{{ '📬' if claim.status == 'pending' else '🎉' }}</div>
+    {% if claim.status == 'pending' %}
+      <h1>Almost done — check your email</h1>
+      <p>We're holding <strong>{{ claim.item.title }}</strong> for you. To lock it in, click the confirmation
+         link we just sent to <strong>{{ claim.claimant.email }}</strong>
+         within {{ site.confirm_window_hours }} hours. If you don't, the ornament goes back on the tree.</p>
+    {% else %}
+      <h1>Thank you, {{ claim.claimant.name or 'friend' }}!</h1>
+      <p>You claimed <strong>{{ claim.item.title }}</strong>{% if claim.quantity > 1 %} (×{{ claim.quantity }}){% endif %}
+         for {{ claim.item.family.alias }}. A confirmation is on its way to <strong>{{ claim.claimant.email }}</strong>.</p>
+    {% endif %}
+
+    <div class="info-box">
+      <p><strong>Ornament #{{ claim.item.id }}</strong>{% if claim.item.recipient %} · For: {{ claim.item.recipient }}{% endif %}{% if claim.item.size %} · Size: {{ claim.item.size }}{% endif %}</p>
+      {% if deadline %}<p>Please drop it off by <strong>{{ deadline|longdate }}</strong>.</p>{% endif %}
+      {% if site.dropoff_instructions %}<p class="pre">{{ site.dropoff_instructions }}</p>{% endif %}
+    </div>
+
+    <p class="actions">
+      <a class="btn btn-primary" href="/">Claim another ornament</a>
+      {% if my_token %}<a class="btn" href="/my/{{ my_token }}">View my ornaments</a>{% endif %}
+    </p>
+    <p class="muted small">Can't see the email? Check your spam folder. Your email has a private link where you can see your ornaments, release one if plans change, or tell us you've dropped it off.</p>
+  </div>
+</section>
+{% endblock %}

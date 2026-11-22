@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Oops · {{ site.site_title }}{% endblock %}
+{% block content %}
+<section class="wrap narrow">
+  <div class="panel center">
+    <div class="big-emoji" aria-hidden="true">{{ '🔍' if status == 404 else '🧦' }}</div>
+    <h1>{{ 'Not found' if status == 404 else 'Something went wrong' }}</h1>
+    <p>{{ detail }}</p>
+    <p><a class="btn" href="/">Back to the tree</a></p>
+  </div>
+</section>
+{% endblock %}

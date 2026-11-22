@@ -1,0 +1,38 @@
+{% extends "admin/base.html" %}
+{% block admin %}
+<div class="admin-head"><h1>Admins</h1></div>
+<div class="grid-2">
+  <div>
+    <div class="table-wrap section">
+    <table>
+      <thead><tr><th>Username</th><th>Added</th><th></th></tr></thead>
+      <tbody>
+      {% for u in users %}
+      <tr><td>{{ u.username }}{% if u.id == me.id %} <span class="muted small">(you)</span>{% endif %}</td>
+        <td class="small">{{ u.created_at|localdt }}</td>
+        <td>{% if u.id != me.id %}<form method="post" action="/admin/users/{{ u.id }}/delete" onsubmit="return confirm('Remove this admin?')"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn btn-small btn-danger" type="submit">Remove</button></form>{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    <div class="panel">
+      <h3>Add an admin</h3>
+      <form method="post" action="/admin/users">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <label class="field"><span>Username</span><input name="username" required autocomplete="off"></label>
+        <label class="field"><span>Password <em>(8+ characters)</em></span><input type="password" name="password" minlength="8" required autocomplete="new-password"></label>
+        <button class="btn btn-green" type="submit">Add admin</button>
+      </form>
+    </div>
+  </div>
+  <div class="panel" style="align-self:start">
+    <h3>Change my password</h3>
+    <form method="post" action="/admin/password">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label class="field"><span>Current password</span><input type="password" name="current" required autocomplete="current-password"></label>
+      <label class="field"><span>New password</span><input type="password" name="new" minlength="8" required autocomplete="new-password"></label>
+      <button class="btn btn-green" type="submit">Change password</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

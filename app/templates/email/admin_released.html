@@ -1,0 +1,16 @@
+{% block subject %}[Giving Tree] Released: "{{ item.title }}" is back on the tree{% endblock %}
+
+{% block text %}
+{{ claimant.name }} <{{ claimant.email }}> released their claim on:
+
+{{ L.item_text(item, claim) }}
+It's available again on the tree.
+{% endblock %}
+
+{% block html %}
+{% call L.wrap(site) %}
+<p><strong>{{ claimant.name }}</strong> &lt;{{ claimant.email }}&gt; released their claim on:</p>
+{{ L.item_box(item, claim) }}
+<p>It's available again on the tree.</p>
+{% endcall %}
+{% endblock %}
