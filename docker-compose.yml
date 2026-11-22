@@ -2,6 +2,8 @@ services:
   giving-tree:
     build: .
     image: giving-tree:latest
+    # Always build locally; this image isn't published to a registry.
+    pull_policy: build
     container_name: giving-tree
     restart: unless-stopped
     env_file: .env
