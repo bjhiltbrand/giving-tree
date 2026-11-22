@@ -82,6 +82,23 @@ set `SMTP_HOST=mailpit`, `SMTP_PORT=1025`, `SMTP_SECURITY=none`, and view mail a
 - **Scaling:** the app intentionally runs one worker, because the reminder scheduler runs in-process.
   That's plenty for hundreds of visitors.
 
+## Demo data for a test site
+
+To show people what the site looks like, load three sample families with gift lists and a few claims
+in different stages (claimed, dropped off, received):
+
+```bash
+docker compose exec giving-tree python -m app.seed_demo            # empty site only
+docker compose exec giving-tree python -m app.seed_demo --reset    # replace existing families/claims
+docker compose exec giving-tree python -m app.seed_demo --no-claims  # families and gifts only
+```
+
+- Admin accounts and settings are kept. If no deadline is set, it sets one three weeks out.
+- Demo donors use `@example.com` addresses with reminders off, so no emails go to them. Real claims
+  made by visitors on the test site behave normally.
+- `--reset` refuses to run if the database holds any donor with a real email address, so it can't
+  wipe a live site by accident. Once people have tried claiming on the test site, add `--force`.
+
 ## Local development
 
 ```bash
