@@ -9,7 +9,7 @@ import smtplib
 import ssl
 from concurrent.futures import ThreadPoolExecutor
 from email.message import EmailMessage
-from email.utils import make_msgid
+from email.utils import formatdate, make_msgid, parseaddr
 
 from . import email_copy
 from .config import settings
@@ -37,6 +37,34 @@ def render(template_name: str, context: dict, copy_override: dict | None = None)
     return subject, text, html
 
 
+def _sender_domain() -> str | None:
+    """Domain of the account that actually sends the mail, for the Message-ID.
+
+    The SMTP login wins when it's an email address: Gmail replaces a From address the account
+    doesn't own with the account's own address, so MAIL_FROM's domain may never appear.
+    """
+    for candidate in (settings.SMTP_USERNAME, parseaddr(settings.MAIL_FROM)[1]):
+        _, _, domain = candidate.strip().rpartition("@")
+        if domain:
+            return domain.lower()
+    return None
+
+
+def build_message(to: str, subject: str, text: str, html: str) -> EmailMessage:
+    msg = EmailMessage()
+    msg["From"] = settings.MAIL_FROM
+    msg["To"] = to
+    msg["Subject"] = subject
+    # Python doesn't add a Date header by itself, and a missing one is a common spam signal.
+    msg["Date"] = formatdate(localtime=True)
+    msg["Message-ID"] = make_msgid(domain=_sender_domain())
+    if settings.MAIL_REPLY_TO:
+        msg["Reply-To"] = settings.MAIL_REPLY_TO
+    msg.set_content(text)
+    msg.add_alternative(html, subtype="html")
+    return msg
+
+
 def _deliver(log_id: int, to: str, subject: str, text: str, html: str) -> None:
     status, error = "sent", ""
     try:
@@ -44,16 +72,7 @@ def _deliver(log_id: int, to: str, subject: str, text: str, html: str) -> None:
             log.info("EMAIL (SMTP not configured) to=%s subject=%s\n%s", to, subject, text)
             status = "logged"
         else:
-            msg = EmailMessage()
-            msg["From"] = settings.MAIL_FROM
-            msg["To"] = to
-            msg["Subject"] = subject
-            msg["Message-ID"] = make_msgid(domain=settings.MAIL_FROM.split("@")[-1].strip("> ") or None)
-            if settings.MAIL_REPLY_TO:
-                msg["Reply-To"] = settings.MAIL_REPLY_TO
-            msg.set_content(text)
-            msg.add_alternative(html, subtype="html")
-
+            msg = build_message(to, subject, text, html)
             if settings.SMTP_SECURITY == "ssl":
                 server = smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT, timeout=30,
                                           context=ssl.create_default_context())
