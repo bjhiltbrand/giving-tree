@@ -10,11 +10,10 @@ from markupsafe import escape
 from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
 
-from . import email_copy, emailer
+from . import categories, email_copy, emailer
 from . import site_settings as ss
 from .db import get_db
 from .models import (
-    CATEGORIES,
     AdminUser,
     Claim,
     Claimant,
@@ -183,11 +182,15 @@ def family_delete(family_id: int, request: Request, db: Session = Depends(get_db
 # ------------------------------------------------------------------ items
 
 
+def _cats(db: Session) -> categories.CategorySet:
+    return categories.from_settings(ss.get_all(db))
+
+
 def _apply_item_form(item: Item, title, description, category, recipient, size, quantity, link_url, sort_order,
-                     is_active) -> None:
+                     is_active, cats: categories.CategorySet) -> None:
     item.title = title.strip()[:200]
     item.description = description.strip()
-    item.category = category if category in CATEGORIES else "other"
+    item.category = cats.valid(category)
     item.recipient = recipient.strip()[:120]
     item.size = size.strip()[:80]
     item.quantity = max(1, _form_int(quantity, 1))
@@ -208,7 +211,8 @@ def item_create(family_id: int, request: Request, db: Session = Depends(get_db),
     if not fam:
         raise HTTPException(404, "Family not found.")
     item = Item(family_id=fam.id)
-    _apply_item_form(item, title, description, category, recipient, size, quantity, link_url, sort_order, is_active)
+    _apply_item_form(item, title, description, category, recipient, size, quantity, link_url, sort_order, is_active,
+                     _cats(db))
     db.add(item)
     db.commit()
     flash(request, f"Added “{item.title}”.", "success")
@@ -224,9 +228,11 @@ def item_bulk_create(family_id: int, request: Request, db: Session = Depends(get
     fam = db.get(Family, family_id)
     if not fam:
         raise HTTPException(404, "Family not found.")
-    cat_lookup = {k: k for k in CATEGORIES} | {v.lower(): k for k, v in CATEGORIES.items()}
-    cat_lookup |= {"clothes": "clothing", "toy": "toys", "gift card": "giftcard", "gift cards": "giftcard",
-                   "book": "books"}
+    cats = _cats(db)
+    cat_lookup = cats.lookup()
+    # Common spellings of the built-in types, as long as those types still exist.
+    aliases = {"clothes": "clothing", "toy": "toys", "gift card": "giftcard", "gift cards": "giftcard", "book": "books"}
+    cat_lookup = {word: key for word, key in aliases.items() if key in cats.by_key} | cat_lookup
     added = 0
     for raw in lines.splitlines():
         if not raw.strip():
@@ -235,9 +241,9 @@ def item_bulk_create(family_id: int, request: Request, db: Session = Depends(get
         title, recipient, size, cat, qty = parts[:5]
         if not title:
             continue
-        category = cat_lookup.get(cat.lower(), default_category if default_category in CATEGORIES else "other")
+        category = cat_lookup.get(cat.lower().strip(), cats.valid(default_category))
         item = Item(family_id=fam.id)
-        _apply_item_form(item, title, "", category, recipient, size, qty or "1", "", "0", "1")
+        _apply_item_form(item, title, "", category, recipient, size, qty or "1", "", "0", "1", cats)
         db.add(item)
         added += 1
     db.commit()
@@ -264,7 +270,8 @@ def item_update(item_id: int, request: Request, db: Session = Depends(get_db),
     item = db.get(Item, item_id)
     if not item:
         raise HTTPException(404, "Item not found.")
-    _apply_item_form(item, title, description, category, recipient, size, quantity, link_url, sort_order, is_active)
+    _apply_item_form(item, title, description, category, recipient, size, quantity, link_url, sort_order, is_active,
+                     _cats(db))
     if item.quantity < item.claimed_qty:
         item.quantity = item.claimed_qty
         flash(request, f"Quantity can't be lower than what's already claimed ({item.claimed_qty}).", "error")
@@ -423,9 +430,33 @@ def claim_note(claim_id: int, request: Request, db: Session = Depends(get_db),
 # ------------------------------------------------------------------ settings
 
 
+def _category_usage(db: Session) -> dict[str, int]:
+    """Items per category key, hidden items included."""
+    return dict(db.query(Item.category, func.count(Item.id)).group_by(Item.category).all())
+
+
 @router.get("/settings")
 def settings_page(request: Request, db: Session = Depends(get_db), admin: AdminUser = Depends(require_admin)):
-    return render(request, db, "admin/settings.html", {"values": ss.get_all(db)})
+    return render(request, db, "admin/settings.html", {
+        "values": ss.get_all(db), "palette": categories.PALETTE, "category_usage": _category_usage(db),
+    })
+
+
+@router.post("/categories")
+async def categories_save(request: Request, db: Session = Depends(get_db), admin: AdminUser = Depends(require_admin)):
+    form = await request.form()
+    check_csrf(request, form.get("csrf"))
+    fields = [form.getlist(f"cat_{name}") for name in ("key", "label", "color", "icon")]
+    rows = [dict(zip(("key", "label", "color", "icon"), map(str, values))) for values in zip(*fields)]
+    remove = {str(k) for k in form.getlist("cat_remove")}
+    try:
+        new = categories.apply_form(_cats(db), rows, remove, _category_usage(db))
+    except categories.CategoryError as exc:
+        flash(request, str(exc), "error")
+        return redirect("/admin/settings#categories")
+    ss.save(db, {"categories": categories.to_json(new)})
+    flash(request, "Gift categories saved.", "success")
+    return redirect("/admin/settings#categories")
 
 
 @router.post("/settings")

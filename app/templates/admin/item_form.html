@@ -1,5 +1,5 @@
 {% extends "admin/base.html" %}
-{% from "admin/_item_fields.html" import item_fields %}
+{% from "admin/_item_fields.html" import item_fields with context %}
 {% from "admin/_macros.html" import claim_table %}
 {% block admin %}
 <a class="back" href="/admin/families/{{ item.family_id }}">← {{ item.family.alias }}</a>

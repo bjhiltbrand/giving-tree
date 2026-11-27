@@ -152,3 +152,15 @@ replaced entry "Superseded by ADR-N" instead of deleting it.
   `@example.com` addresses with reminders off. `--reset` refuses to run while any donor with a
   real email address exists, unless `--force` is given.
 - **Consequences:** Safe to run on a test site; deliberate effort is needed to clear real data.
+
+### ADR-17: Gift categories are admin-editable data (2026-11-26)
+- **Context:** Organizers need types that fit their drive (e.g. Food instead of Gift Card).
+- **Decision:** Categories live as JSON in the `categories` site setting (`app/categories.py`), each
+  with a stable `key` that items store, plus a label, a color from `categories.PALETTE` and a short
+  icon. Admin → Settings → Gift categories edits them. Renaming keeps the key, so items follow.
+  `other` always exists as the fallback for unknown keys. A category used by any item can't be
+  removed. `.cat-<key>` CSS is generated in `base.html`, and `tree.js` gets colors and icons from the
+  page JSON, so the palette has one source.
+- **Consequences:** Templates read categories from the `cats` render context, never a global, so
+  macros imported from another file that use them need `import ... with context`. Item keys must
+  always go through `cats.valid()`; never trust a submitted key.

@@ -67,6 +67,49 @@
   <p><button class="btn btn-green btn-lg" style="width:auto" type="submit">Save settings</button></p>
 </form>
 
+<div class="panel section" id="categories" style="max-width: 760px">
+  <h3>Gift categories</h3>
+  <p class="small muted">The “Type” choices for items, with the color and icon their ornaments get on the tree.
+    Renaming a category renames it on every item that uses it. A category can only be removed once no items use it.
+    “{{ cats.label('other') }}” is used for anything without a type, so it can be renamed but not removed.</p>
+  <form method="post" action="/admin/categories">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <div class="table-wrap">
+    <table class="categories-table">
+      <thead><tr><th>Icon</th><th>Name</th><th>Color</th><th>Items</th><th>Remove</th></tr></thead>
+      <tbody>
+      {% for c in cats %}
+      {% set used = category_usage.get(c.key, 0) %}
+      <tr>
+        <td><input type="hidden" name="cat_key" value="{{ c.key }}">
+          <input name="cat_icon" value="{{ c.icon }}" maxlength="8" size="3" aria-label="Icon for {{ c.label }}"></td>
+        <td><input name="cat_label" value="{{ c.label }}" maxlength="60" required aria-label="Name"></td>
+        <td><span class="dot cat-{{ c.key }}" aria-hidden="true"></span>
+          <select name="cat_color" aria-label="Color for {{ c.label }}">{% for name in palette %}<option value="{{ name }}" {% if name == c.color %}selected{% endif %}>{{ name|capitalize }}</option>{% endfor %}</select></td>
+        <td class="small">{{ used }}</td>
+        <td>{% if c.key == 'other' %}<span class="small muted">Fallback</span>
+          {% elif used %}<span class="small muted" title="Change the type of these items first">In use</span>
+          {% else %}<label class="check" style="margin:0"><input type="checkbox" name="cat_remove" value="{{ c.key }}"> <span class="sr-only">Remove {{ c.label }}</span></label>{% endif %}</td>
+      </tr>
+      {% endfor %}
+      {% for _ in range(2) %}
+      <tr class="new-row">
+        <td><input type="hidden" name="cat_key" value="">
+          <input name="cat_icon" value="" maxlength="8" size="3" placeholder="🥫" aria-label="Icon for a new category"></td>
+        <td><input name="cat_label" value="" maxlength="60" placeholder="New category, e.g. Food" aria-label="Name for a new category"></td>
+        <td><select name="cat_color" aria-label="Color for a new category">{% for name in palette %}<option value="{{ name }}" {% if name == 'green' %}selected{% endif %}>{{ name|capitalize }}</option>{% endfor %}</select></td>
+        <td></td><td></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    <p class="small muted">Fill in a blank row to add a category; save again for more rows. New categories go before
+      “{{ cats.label('other') }}”.</p>
+    <button class="btn btn-green" type="submit">Save categories</button>
+  </form>
+</div>
+
 <div class="panel section" style="max-width: 760px">
   <h3>Email delivery</h3>
   <p class="small muted">SMTP is configured in <code>.env</code> (see the README for Mailcow and Gmail setups). Send yourself a test to check it.</p>

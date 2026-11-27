@@ -9,15 +9,10 @@
   const NS = "http://www.w3.org/2000/svg";
 
   const CX = 300, APEX_Y = 78, BASE_Y = 628, MAX_HW = 262;
-  const COLORS = {
-    clothing: ["#ff6b6b", "#a61e1e"],
-    toys: ["#ffd85c", "#b07d0a"],
-    books: ["#b58cf0", "#5a2f98"],
-    giftcard: ["#6cc3ff", "#1d5f9e"],
-    household: ["#ffa05c", "#a5500f"],
-    other: ["#f4f4fa", "#8d8da6"],
-  };
-  const ICONS = { clothing: "👕", toys: "🧸", books: "📚", giftcard: "💳", household: "🏠", other: "✨" };
+  // {key: {label, icon, colors: [light, dark]}}, from the categories set in Admin > Settings.
+  const CATS = DATA.categories || {};
+  const cat = (key) => CATS[key] || CATS.other || { label: "Other", icon: "✨", colors: ["#f4f4fa", "#8d8da6"] };
+  const catKey = (key) => (CATS[key] ? key : "other");
 
   const el = (tag, attrs, parent) => {
     const n = document.createElementNS(NS, tag);
@@ -36,8 +31,9 @@
     const glow = el("radialGradient", { id: "starglow" }, defs);
     el("stop", { offset: "0", "stop-color": "#fff6c2", "stop-opacity": ".9" }, glow);
     el("stop", { offset: "1", "stop-color": "#fff6c2", "stop-opacity": "0" }, glow);
-    for (const [cat, [light, dark]] of Object.entries(COLORS)) {
-      const rg = el("radialGradient", { id: "orn-" + cat, cx: ".35", cy: ".3", r: ".75" }, defs);
+    for (const key of Object.keys(CATS).concat(CATS.other ? [] : ["other"])) {
+      const [light, dark] = cat(key).colors;
+      const rg = el("radialGradient", { id: "orn-" + key, cx: ".35", cy: ".3", r: ".75" }, defs);
       el("stop", { offset: "0", "stop-color": "#ffffff", "stop-opacity": ".95" }, rg);
       el("stop", { offset: ".18", "stop-color": light }, rg);
       el("stop", { offset: "1", "stop-color": dark }, rg);
@@ -149,12 +145,12 @@
       const inner = el("g", { class: "orn-inner" }, g);
       el("line", { x1: 0, y1: -r - 12, x2: 0, y2: -r, stroke: "#e9d8a6", "stroke-width": 1.5 }, inner);
       el("rect", { x: -r * 0.28, y: -r - 4, width: r * 0.56, height: r * 0.32, rx: 2, fill: "#c9a640" }, inner);
-      el("circle", { r, fill: `url(#orn-${COLORS[item.category] ? item.category : "other"})`,
+      el("circle", { r, fill: `url(#orn-${catKey(item.category)})`,
         stroke: "rgba(0,0,0,.25)", "stroke-width": 1, filter: taken ? "url(#taken)" : null }, inner);
       if (r >= 13) {
         const t = el("text", { "text-anchor": "middle", "dominant-baseline": "central", "font-size": r * 0.85,
           y: r * 0.06, class: "orn-icon" }, inner);
-        t.textContent = ICONS[item.category] || ICONS.other;
+        t.textContent = cat(item.category).icon;
       }
       if (taken) {
         el("circle", { cx: r * 0.62, cy: -r * 0.55, r: Math.max(6, r * 0.38), fill: "#ffd54a", stroke: "#8a6a10" }, inner);
@@ -243,8 +239,8 @@
     const item = ALL.find((i) => i.id === id);
     if (!item) return;
     hideTip();
-    $("dlg-ornament").className = "dlg-ornament cat-" + item.category;
-    $("dlg-meta").textContent = `Ornament #${item.id} · ${item.categoryLabel}`;
+    $("dlg-ornament").className = "dlg-ornament cat-" + catKey(item.category);
+    $("dlg-meta").textContent = `Ornament #${item.id} · ${cat(item.category).label}`;
     $("dlg-title").textContent = item.title;
     const dl = $("dlg-details"); dl.innerHTML = "";
     const add = (k, v) => { if (!v) return; const dt = document.createElement("dt"); dt.textContent = k;

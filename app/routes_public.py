@@ -3,10 +3,11 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from sqlalchemy.orm import Session, selectinload
 
+from . import categories
 from . import site_settings as ss
 from .config import settings
 from .db import get_db
-from .models import CATEGORIES, Claim, Claimant, Family, Item
+from .models import Claim, Claimant, Family, Item
 from .security import check_csrf, client_ip, limiter
 from .services import (
     ClaimError,
@@ -45,7 +46,6 @@ def _tree_items(db: Session, show_families: bool) -> tuple[list[Family], list[It
             "title": item.title,
             "description": item.description,
             "category": item.category,
-            "categoryLabel": item.category_label,
             "recipient": item.recipient,
             "size": item.size,
             "quantity": item.quantity,
@@ -63,15 +63,15 @@ def _tree_items(db: Session, show_families: bool) -> tuple[list[Family], list[It
 
 @router.get("/")
 def tree(request: Request, db: Session = Depends(get_db)):
-    show_families = ss.show_families(ss.get_all(db))
+    values = ss.get_all(db)
+    show_families, cats = ss.show_families(values), categories.from_settings(values)
     families, all_items, items = _tree_items(db, show_families)
     total = sum(i["quantity"] for i in items)
     claimed = sum(i["quantity"] - i["remaining"] for i in items)
     return render(request, db, "tree.html", {
         "families": families,
         # Combined list: grouped by gift type, then alphabetical (no family clustering).
-        "flat_items": sorted(all_items, key=lambda i: (list(CATEGORIES).index(i.category)
-                                                       if i.category in CATEGORIES else 99, i.title.lower())),
+        "flat_items": sorted(all_items, key=lambda i: (cats.index(i.category), i.title.lower())),
         "items": items,
         "total": total,
         "claimed": claimed,

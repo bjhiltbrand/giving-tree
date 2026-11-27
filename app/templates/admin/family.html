@@ -1,6 +1,6 @@
 {% extends "admin/base.html" %}
 {% from "admin/_macros.html" import claim_table %}
-{% from "admin/_item_fields.html" import item_fields %}
+{% from "admin/_item_fields.html" import item_fields with context %}
 {% block admin %}
 <a class="back" href="/admin">← Dashboard</a>
 <div class="admin-head">
@@ -32,7 +32,7 @@
         <td>{{ item.id }}</td>
         <td><strong>{{ item.title }}</strong>
           <div class="small muted">{% if item.recipient %}For: {{ item.recipient }}{% endif %}{% if item.size %} · Size: {{ item.size }}{% endif %}</div></td>
-        <td><span class="dot cat-{{ item.category }}"></span> {{ item.category_label }}</td>
+        <td><span class="dot cat-{{ cats.valid(item.category) }}"></span> {{ cats.label(item.category) }}</td>
         <td>{{ item.quantity }}</td>
         <td>
           {% if not item.is_active %}<span class="chip chip-hidden">Hidden</span>
@@ -81,7 +81,7 @@ LEGO set | Boy, age 7 | | toys
 $25 grocery gift card | Family | | gift card | 4
 Chapter books | Girl, age 10 | | books"></textarea></label>
       <label class="field"><span>Type when not given</span>
-        <select name="default_category">{% for key, label in CATEGORIES.items() %}<option value="{{ key }}" {% if key == 'other' %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+        <select name="default_category">{% for c in cats %}<option value="{{ c.key }}" {% if c.key == 'other' %}selected{% endif %}>{{ c.label }}</option>{% endfor %}</select></label>
       <button class="btn btn-green" type="submit">Add all</button>
     </form>
   </div>

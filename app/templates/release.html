@@ -3,8 +3,8 @@
 {% block content %}
 <section class="wrap narrow">
   <div class="panel">
-    <div class="dlg-ornament cat-{{ claim.item.category }}" aria-hidden="true"></div>
-    <p class="muted small">Ornament #{{ claim.item.id }} · {{ claim.item.category_label }}</p>
+    <div class="dlg-ornament cat-{{ cats.valid(claim.item.category) }}" aria-hidden="true"></div>
+    <p class="muted small">Ornament #{{ claim.item.id }} · {{ cats.label(claim.item.category) }}</p>
     <h1>{{ claim.item.title }}{% if claim.quantity > 1 %} ×{{ claim.quantity }}{% endif %}</h1>
     <dl class="dlg-details">
       {% if claim.item.recipient %}<dt>For</dt><dd>{{ claim.item.recipient }}</dd>{% endif %}

@@ -6,8 +6,8 @@
 <section class="wrap narrow">
   <a class="back" href="/">← Back to the tree</a>
   <div class="panel">
-    <div class="dlg-ornament cat-{{ item.category }}" aria-hidden="true"></div>
-    <p class="muted small">Ornament #{{ item.id }} · {{ item.category_label }}</p>
+    <div class="dlg-ornament cat-{{ cats.valid(item.category) }}" aria-hidden="true"></div>
+    <p class="muted small">Ornament #{{ item.id }} · {{ cats.label(item.category) }}</p>
     <h1>{{ item.title }}</h1>
     <dl class="dlg-details">
       {% if item.recipient %}<dt>For</dt><dd>{{ item.recipient }}</dd>{% endif %}

@@ -22,6 +22,7 @@ proxy. The app trusts `X-Forwarded-*` headers and marks cookies `Secure` when `B
 Then open `https://your-site/admin`, log in, and:
 
 1. **Settings:** set the title, welcome text, **drop-off deadline**, drop-off instructions, and the organizer notification email. Use **Send test email** to check SMTP.
+   Under **Gift categories** you can rename, recolor, add or remove the item types (Clothing, Toys, Food…).
 2. **Add a family:** give it a public alias ("Family A") and keep real details in *Private notes*.
 3. **Add items:** one at a time, or paste a whole list into **Quick add**:
    ```
@@ -29,6 +30,7 @@ Then open `https://your-site/admin`, log in, and:
    LEGO set | Boy, age 7 | | toys
    $25 grocery gift card | Family | | gift card | 4
    ```
+   The fourth column is a category name from Settings; anything unrecognized gets the "Type when not given".
 
 If you leave `ADMIN_PASSWORD` empty, a random password is generated on first start. Find it with
 `docker compose logs giving-tree`.

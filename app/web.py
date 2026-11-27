@@ -5,6 +5,7 @@ from fastapi import Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
+from . import categories
 from . import site_settings as ss
 from .security import csrf_token
 from .templating import templates
@@ -22,6 +23,7 @@ def render(request: Request, db: Session, name: str, context: dict | None = None
         "site": values,
         "deadline": ss.deadline(values),
         "show_families": ss.show_families(values),
+        "cats": categories.from_settings(values),
         "lookup_by_email": ss.lookup_by_email(values),
         "csrf": csrf_token(request),
         "flashes": request.session.pop("flash", []),

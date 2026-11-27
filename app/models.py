@@ -25,15 +25,6 @@ def new_token() -> str:
     return secrets.token_urlsafe(24)
 
 
-CATEGORIES = {
-    "clothing": "Clothing",
-    "toys": "Toys & Games",
-    "books": "Books",
-    "giftcard": "Gift Card",
-    "household": "Household",
-    "other": "Other",
-}
-
 # Claim lifecycle:
 #   pending   -> held, waiting for the claimant to click the email confirmation link
 #   claimed   -> active claim; the claimant is shopping
@@ -90,7 +81,7 @@ class Item(Base):
     family_id: Mapped[int] = mapped_column(ForeignKey("families.id", ondelete="CASCADE"), index=True)
     title: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text, default="")
-    category: Mapped[str] = mapped_column(String(40), default="other")
+    category: Mapped[str] = mapped_column(String(40), default="other")  # a key from categories.py
     recipient: Mapped[str] = mapped_column(String(120), default="")  # e.g. "Girl, age 8"
     size: Mapped[str] = mapped_column(String(80), default="")
     quantity: Mapped[int] = mapped_column(Integer, default=1)
@@ -121,10 +112,6 @@ class Item(Base):
         if self.fulfilled_qty >= self.quantity:
             return "fulfilled"
         return "claimed"
-
-    @property
-    def category_label(self) -> str:
-        return CATEGORIES.get(self.category, "Other")
 
 
 class Claimant(Base):

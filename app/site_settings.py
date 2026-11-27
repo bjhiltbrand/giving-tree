@@ -5,6 +5,7 @@ from datetime import date, datetime
 
 from sqlalchemy.orm import Session
 
+from . import categories
 from .config import settings as env
 from .models import SiteSetting
 
@@ -35,6 +36,8 @@ DEFAULTS: dict[str, str] = {
     "lookup_mode": "email",
     "claims_open": "1",
     "closed_message": "Claiming is closed for this season. Thank you to everyone who gave!",
+    # Gift categories as JSON; edited in its own section of Admin > Settings (see categories.py).
+    "categories": categories.DEFAULT_JSON,
 }
 
 

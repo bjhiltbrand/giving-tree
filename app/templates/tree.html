@@ -41,12 +41,12 @@
   <label>Type
     <select id="f-category">
       <option value="">Any type</option>
-      {% for key, label in CATEGORIES.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+      {% for c in cats %}<option value="{{ c.key }}">{{ c.label }}</option>{% endfor %}
     </select>
   </label>
   <label class="check"><input type="checkbox" id="f-available" checked> Only show available</label>
   <div class="legend" aria-hidden="true">
-    {% for key, label in CATEGORIES.items() %}<span class="legend-item"><i class="dot cat-{{ key }}"></i>{{ label }}</span>{% endfor %}
+    {% for c in cats %}<span class="legend-item"><i class="dot cat-{{ c.key }}"></i>{{ c.label }}</span>{% endfor %}
   </div>
 </section>
 
@@ -60,8 +60,8 @@
   <article class="card state-{{ item.state }}" data-id="{{ item.id }}"
            data-category="{{ item.category }}" data-available="{{ 1 if item.remaining else 0 }}">
     <div class="card-head">
-      <span class="dot cat-{{ item.category }}" aria-hidden="true"></span>
-      <span class="muted small">#{{ item.id }} · {{ item.category_label }}</span>
+      <span class="dot cat-{{ cats.valid(item.category) }}" aria-hidden="true"></span>
+      <span class="muted small">#{{ item.id }} · {{ cats.label(item.category) }}</span>
     </div>
     <h4>{{ item.title }}</h4>
     <p class="small">
@@ -113,6 +113,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script id="tree-data" type="application/json">{{ {"items": items, "claimsOpen": site.claims_open in ('1', 'true', 'on'), "maxQty": site.max_claim_qty|int}|tojson }}</script>
-<script src="/static/js/tree.js?v=2"></script>
+<script id="tree-data" type="application/json">{{ {"items": items, "claimsOpen": site.claims_open in ('1', 'true', 'on'), "maxQty": site.max_claim_qty|int, "categories": cats.tree_data()}|tojson }}</script>
+<script src="/static/js/tree.js?v=3"></script>
 {% endblock %}

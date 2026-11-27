@@ -161,12 +161,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 1.5rem 0; }
 .legend-item { display: inline-flex; align-items: center; gap: .35rem; }
 
 .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,.2); vertical-align: middle; flex-shrink: 0; }
-.cat-clothing { background: radial-gradient(circle at 35% 30%, #ffd0d0, #e14a4a 40%, #a61e1e); }
-.cat-toys { background: radial-gradient(circle at 35% 30%, #fff5cc, #f5c93d 40%, #b07d0a); }
-.cat-books { background: radial-gradient(circle at 35% 30%, #ecdcff, #a57ae6 40%, #5a2f98); }
-.cat-giftcard { background: radial-gradient(circle at 35% 30%, #d6efff, #55b1f2 40%, #1d5f9e); }
-.cat-household { background: radial-gradient(circle at 35% 30%, #ffe2cc, #f6904a 40%, #a5500f); }
-.cat-other { background: radial-gradient(circle at 35% 30%, #fff, #e3e3ee 40%, #8d8da6); }
+/* .cat-<key> colors are generated from the stored categories in base.html */
 
 .list-view { padding-bottom: 3rem; }
 .list-view > h2 { margin-top: 1rem; }
@@ -273,3 +268,11 @@ code { background: #f4efe4; padding: .1rem .35rem; border-radius: 5px; font-size
 .choice:has(input:checked) { border-color: var(--green); background: #f1f8f3; }
 .choice input { margin-top: .25rem; accent-color: var(--green); }
 .choice strong { display: block; }
+
+/* Admin > Settings > Gift categories */
+.categories-table td { vertical-align: middle; }
+.categories-table input[name="cat_icon"] { width: 3.4rem; text-align: center; font-size: 1.1rem; }
+.categories-table select { width: auto; }
+.categories-table .dot { margin-right: .35rem; }
+.categories-table .new-row input::placeholder { color: #9aa39e; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
