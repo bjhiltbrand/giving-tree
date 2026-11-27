@@ -271,8 +271,27 @@ code { background: #f4efe4; padding: .1rem .35rem; border-radius: 5px; font-size
 
 /* Admin > Settings > Gift categories */
 .categories-table td { vertical-align: middle; }
-.categories-table input[name="cat_icon"] { width: 3.4rem; text-align: center; font-size: 1.1rem; }
+.categories-table input.icon-input { width: 3.4rem; text-align: center; font-size: 1.1rem; }
 .categories-table select { width: auto; }
 .categories-table .dot { margin-right: .35rem; }
-.categories-table .new-row input::placeholder { color: #9aa39e; }
+.categories-table .new-row td:first-child { box-shadow: inset 3px 0 0 #45c276; }
+.categories-actions { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; margin-top: .8rem; }
+.icon-btn {
+  font-size: 1.35rem; line-height: 1; width: 3rem; height: 2.6rem; border-radius: 10px; cursor: pointer;
+  border: 1px solid #d5ccb9; background: #fff; display: inline-flex; align-items: center; justify-content: center;
+}
+.icon-btn:hover, .icon-btn[aria-expanded="true"] { border-color: #8a7d62; background: #fbf7ef; }
+.icon-picker {
+  position: absolute; z-index: 50; width: min(22rem, calc(100vw - 16px)); padding: .75rem; border-radius: 12px;
+  background: #fff; border: 1px solid #d5ccb9; box-shadow: 0 10px 30px rgba(0,0,0,.18);
+}
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.4rem, 1fr)); gap: .2rem; }
+.icon-grid button {
+  font-size: 1.3rem; line-height: 1; height: 2.4rem; border: 0; border-radius: 8px; background: transparent; cursor: pointer;
+}
+.icon-grid button:hover, .icon-grid button:focus-visible { background: #f6f1e6; outline: 2px solid #8a7d62; }
+.icon-custom { display: flex; align-items: center; gap: .5rem; margin: .7rem 0 .3rem; }
+.icon-custom input { width: 5rem; text-align: center; font-size: 1.1rem; padding: .35rem .5rem; border-radius: 8px; border: 1px solid #d5ccb9; }
+.icon-picker .help { margin: 0; }
+.icon-picker kbd { font: inherit; font-size: .75rem; padding: 0 .3rem; border: 1px solid #d5ccb9; border-radius: 4px; background: #f6f1e6; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

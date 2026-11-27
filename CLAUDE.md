@@ -16,10 +16,12 @@ replaced entry "Superseded by ADR-N" instead of deleting it.
 ### ADR-1: Server-rendered FastAPI app, no front-end build (2026-11-22)
 - **Context:** A small volunteer-run site, live about one month a year, maintained by one person.
 - **Decision:** Python 3.12 + FastAPI + Jinja2 templates rendered on the server. Plain CSS
-  (`app/static/css/style.css`) and one vanilla JS file (`app/static/js/tree.js`). No SPA, bundler or
+  (`app/static/css/style.css`) and small vanilla JS files in `app/static/js/`. No SPA, bundler or
   npm.
-- **Consequences:** Nothing to build except the Docker image. Every page works as normal HTML forms;
-  JavaScript only draws the tree and opens the claim dialog.
+- **Consequences:** Nothing to build except the Docker image. Every page works as normal HTML forms.
+  JavaScript is progressive enhancement only: `tree.js` draws the tree and opens the claim dialog;
+  `admin-categories.js` (2026-11-26) adds category rows and the icon picker, and without it the form
+  still works with a single blank row.
 
 ### ADR-2: SQLite in a Docker volume, no migration tool (2026-11-22)
 - **Context:** Tiny data set, one container, easy backups.
@@ -157,7 +159,9 @@ replaced entry "Superseded by ADR-N" instead of deleting it.
 - **Context:** Organizers need types that fit their drive (e.g. Food instead of Gift Card).
 - **Decision:** Categories live as JSON in the `categories` site setting (`app/categories.py`), each
   with a stable `key` that items store, plus a label, a color from `categories.PALETTE` and a short
-  icon. Admin → Settings → Gift categories edits them. Renaming keeps the key, so items follow.
+  icon. Admin → Settings → Gift categories edits them in one form: "Add category" adds rows in the
+  browser, an emoji picker sets icons, and one Save applies everything. Renaming keeps the key, so
+  items follow.
   `other` always exists as the fallback for unknown keys. A category used by any item can't be
   removed. `.cat-<key>` CSS is generated in `base.html`, and `tree.js` gets colors and icons from the
   page JSON, so the palette has one source.
