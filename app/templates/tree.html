@@ -41,12 +41,12 @@
   <label>Type
     <select id="f-category">
       <option value="">Any type</option>
-      {% for c in cats %}<option value="{{ c.key }}">{{ c.label }}</option>{% endfor %}
+      {% for c in tree_cats %}<option value="{{ c.key }}">{{ c.label }}</option>{% endfor %}
     </select>
   </label>
   <label class="check"><input type="checkbox" id="f-available" checked> Only show available</label>
   <div class="legend" aria-hidden="true">
-    {% for c in cats %}<span class="legend-item"><i class="dot cat-{{ c.key }}"></i>{{ c.label }}</span>{% endfor %}
+    {% for c in tree_cats %}<span class="legend-item"><i class="dot cat-{{ c.key }}"></i>{{ c.label }}</span>{% endfor %}
   </div>
 </section>
 

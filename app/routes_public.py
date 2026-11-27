@@ -68,10 +68,13 @@ def tree(request: Request, db: Session = Depends(get_db)):
     families, all_items, items = _tree_items(db, show_families)
     total = sum(i["quantity"] for i in items)
     claimed = sum(i["quantity"] - i["remaining"] for i in items)
+    used_keys = {cats.valid(i.category) for i in all_items}
     return render(request, db, "tree.html", {
         "families": families,
         # Combined list: grouped by gift type, then alphabetical (no family clustering).
         "flat_items": sorted(all_items, key=lambda i: (cats.index(i.category), i.title.lower())),
+        # Only types that have at least one ornament on the tree go in the filter and legend.
+        "tree_cats": [c for c in cats if c.key in used_keys],
         "items": items,
         "total": total,
         "claimed": claimed,
